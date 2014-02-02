@@ -32,9 +32,7 @@ if (hasProperty('pub')) {
 
 
 group = "edu.holycross.shot"
-version = "0.6.0"
-
-
+version = "0.6.2"
 
 repositories {
     mavenCentral()
@@ -82,15 +80,24 @@ dependencies {
 }
 
 
-httpPort = 8888
+
 stopPort = 9451
 stopKey = 'foo'
+
+if (hasProperty('jettyPort')) {
+    System.err.print "Using httpPort configuration as ${jettyPort}\n"
+    httpPort = jettyPort.toInteger()
+} else {
+        httpPort = 8888
+}
 
 task copyInventory(type: Copy) {
   from "${inventoryDir}"
   into "${buildDir}/tmp/jettyRunWar/webapp/invs/"
-  doFirst {
-    println "Copying from ${inventoryDir} to  build location"
+  doLast {
+    println ""
+    println "Copied inventories from ${inventoryDir} to  build location ${buildDir}/tmp/jettyRunWar/webapp/invs"
+    println ""
   }
 
 }
@@ -118,14 +125,7 @@ war {
     filter(ReplaceTokens, tokens: [tripleserver: tripleserver])
 }
 
-war { 
-    from('invs') { 
-        include '**/*.xml'
-        into('invs') 
-    } 
-} 
-
-jettyRunWar.dependsOn  copyInventory
+war.dependsOn  copyInventory
 
 uploadArchives {
   repositories.mavenDeployer {
