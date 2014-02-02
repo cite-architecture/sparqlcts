@@ -1,0 +1,13 @@
+ext {
+  
+  citeVersion = "0.12.17"
+
+  commonsioVersion = "1.4"
+  log4jVersion= "1.2.15"
+  groovyVersion = "2.0.6"
+
+  junitVersion = "4.8.2"
+  xmlunitVersion = "1.3"
+  icu4jVersion = "3.4.4"
+
+}

@@ -1,0 +1,8 @@
+/* Configuration for sparqlcts.
+*/
+
+
+project.ext {
+    tripleserver = "localhost:3030/ds/"
+    inventoryDir = "testinvs"
+}
