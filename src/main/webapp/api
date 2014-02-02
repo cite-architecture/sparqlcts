@@ -1,0 +1,100 @@
+import edu.holycross.shot.sparqlcts.CtsGraph
+import edu.holycross.shot.sparqlcts.CtsDefinitions
+
+import edu.harvard.chs.cite.CtsUrn
+
+String contentType = "text/xml"
+response.setContentType(contentType)
+response.setHeader( "Access-Control-Allow-Origin", "*")
+
+
+boolean done = false
+
+String getCapsReply() {
+    String inv = "inventory.xml"
+    if (request.getParameter("inv")) {
+        inv = request.getParameter("inv")
+    }
+
+    try  {
+        File invFile = new File("${request.getRealPath('/')}/invs/${inv}")
+        // temporary kludge:  strip XML PIs, and hope they're isolated on
+        // a single line ...
+        String capsText = invFile.getText("UTF-8").replaceAll(/<[?].+[?]>/, '')
+        return "<GetCapabilities xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<request></request>\n<reply>\n${capsText}\n</reply>\n</GetCapabilities>"
+
+	//return "<debug>FILE ${invFile} had text of length ${capsText.size()}</debug>"
+
+    } catch (Exception e) {
+        return ("<error>Exception reading inventory file:  ${e}</error>")
+    }
+
+}
+
+
+String req = request.getParameter("request")
+String urnStr = request.getParameter("urn")
+if (req == "GetCapabilities") {
+  //println '<?xml-stylesheet type="text/xsl" href="xslt/gc.xsl"?>\n' + getCapsReply()
+  println getCapsReply()
+  done = true
+
+} else {
+    // guarantee that URN parameter is syntactically valid
+    try {
+        CtsUrn urn = new CtsUrn(urnStr)
+    } catch (Exception e) {
+        println "<error>${urnStr} is not a valid URN: ${e}</error>\n"
+        done = true
+    }
+}
+
+Integer context = 0
+if (request.getParameter("context")) {
+    String contextStr = request.getParameter("context")
+    try {
+        context = contextStr.toInteger()
+    } catch (Exception e) {
+        System.err.println "Value of context parameter must be an integer: ${contextStr}"
+    }
+}
+
+if (!done) {
+    CtsGraph ctsg = new CtsGraph("http://@tripleserver@")
+    switch(req) {
+        case "GetDescription":
+            println '<?xml-stylesheet type="text/xsl" href="xslt/gd.xsl"?>\n' + ctsg.getDescrReply(urnStr)
+            break
+        case "GetPassagePlus":
+            println '<?xml-stylesheet type="text/xsl" href="xslt/gp.xsl"?>\n' + ctsg.getPassagePlusReply(urnStr, context)
+        break
+
+        case "GetPassage":
+            println '<?xml-stylesheet type="text/xsl" href="xslt/gp.xsl"?>\n' + ctsg.getPassageReply(urnStr, context)
+        break
+
+        case "GetPrevNextUrn":
+            println '<?xml-stylesheet type="text/xsl" href="xslt/gpn.xsl"?>\n' + ctsg.getPrevNextReply(urnStr)
+        break
+
+        case "GetValidReff":
+            print '<?xml-stylesheet type="text/xsl" href="xslt/gvr.xsl"?>\n' 
+        String levelVal = request.getParameter("level")
+        String reply = ""
+        try {
+           reply = ctsg.getGVRReply(urnStr, levelVal.toInteger())
+        } catch (Exception e) {
+            reply = ctsg.getGVRReply(urnStr)
+        }
+        println reply
+        break
+
+        default :
+        // break with "undefined request" excetpion
+            println "<error>Unrecognized request: ${req}.  \n(Add properly name-spaced reply here.)</error>"
+        break
+    }
+}
+
+
+

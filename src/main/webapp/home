@@ -1,0 +1,44 @@
+
+html.html {
+    head {
+        title("SPARQL CTS")
+        link(href : "css/normalize.css", rel : "stylesheet", title : "CSS for CTS", type : "text/css")
+        link(href : "css/app.css", rel : "stylesheet", title : "CSS for CTS", type : "text/css")
+
+    }
+    
+    body {
+    
+    	header("SPARQL CTS")
+        nav {
+            p {
+                a(href : "http://www.homermultitext.org/hmt-doc/", "Canonical Text Services") 
+            }
+        }
+    	
+    	article {
+            p("This site hosts an implementation of Canonical Text Services (CTS).")
+            p {
+                mkp.yield("Although CTS is a network service primarily intended for use by other computer programs, you can use ")
+                a(href : "queryforms", "these query forms")
+                mkp.yield(" to interact with the service.")
+            }
+
+	    h2("Links")
+	    ul {
+                li {
+                    a(href :"http://www.homermultitext.org/hmt-doc/", "More about the CTS protocol.")
+                }
+                li {
+                    a (href: "README.md", "README for sparqlcts")
+                    mkp.yield (" (markdown format)")
+                }
+                li {
+                    code("sparqlcts")
+                    mkp.yield (" is licensed under the terms of the ")
+                    a(href : "gpl-3.0.txt", "GPL, version 3")
+                }
+            }
+        }
+    }
+}
