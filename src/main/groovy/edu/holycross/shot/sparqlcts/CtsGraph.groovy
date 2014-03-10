@@ -82,7 +82,9 @@ class CtsGraph {
         def q = "${tripletServerUrl}query?query=${encodedQuery}"
         if (acceptType == "application/json") {
             q +="&output=json"
-        }
+        } else {
+			q +="&output=xml"
+		}
         URL queryUrl = new URL(q)
         return queryUrl.getText("UTF-8")
         
