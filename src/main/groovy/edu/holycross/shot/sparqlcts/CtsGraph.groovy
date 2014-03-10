@@ -3,13 +3,6 @@ package edu.holycross.shot.sparqlcts
 import edu.harvard.chs.cite.CiteUrn
 import edu.harvard.chs.cite.CtsUrn
 
-// Eliminate use of HTTPBuilder
-/*
-import groovyx.net.http.*
-import groovyx.net.http.HttpResponseException
-import static groovyx.net.http.ContentType.*
-import static groovyx.net.http.Method.*
-*/
 
 /*
 
@@ -795,7 +788,7 @@ class CtsGraph {
     String getDescrReply(CtsUrn requestUrn) {
         CtsUrn urn = resolveVersion(requestUrn)
         
-        StringBuffer replyBuff = new StringBuffer("<GetDescription xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n</request>\n")
+        StringBuffer replyBuff = new StringBuffer("<GetDescription xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n</request>\n")
         replyBuff.append("<reply>\n")
         replyBuff.append(getDescription(urn))
         replyBuff.append("</reply>\n</GetDescription>\n")
@@ -839,7 +832,7 @@ class CtsGraph {
     String getPrevNextReply(CtsUrn requestUrn) {
         boolean isLeaf = isLeafNode(requestUrn)
         CtsUrn urn = resolveVersion(requestUrn)
-        StringBuffer replyBuff = new StringBuffer("<GetPrevNextUrn xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<leafnode>${isLeaf}</leafnode><range>${urn.isRange()}</range></request>\n<reply>\n<prevnext>\n")
+        StringBuffer replyBuff = new StringBuffer("<GetPrevNextUrn xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<leafnode>${isLeaf}</leafnode><range>${urn.isRange()}</range></request>\n<reply>\n<prevnext>\n")
         replyBuff.append("<prev><urn>${getPrevUrn(urn)}</urn></prev>")
         replyBuff.append("<next><urn>${getNextUrn(urn)}</urn></next>")
         replyBuff.append("</prevnext>\n</reply></GetPrevNextUrn>")
@@ -879,7 +872,7 @@ class CtsGraph {
         } else {
             psgText.append(getNodeText(urn, context))
         }
-        StringBuffer replyBuff = new StringBuffer("<GetPassage xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<leafnode>${isLeaf}</leafnode><range>${urn.isRange()}</range><context>${context}</context></request>\n")
+        StringBuffer replyBuff = new StringBuffer("<GetPassage xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<leafnode>${isLeaf}</leafnode><range>${urn.isRange()}</range><context>${context}</context></request>\n")
         replyBuff.append("<reply><urn>${urn}</urn><passage ${nsDecls}>${psgText.toString()}</passage>")
         replyBuff.append("</reply></GetPassage>")
         
@@ -906,7 +899,7 @@ class CtsGraph {
         boolean isLeaf = isLeafNode(requestUrn)
         CtsUrn urn = resolveVersion(requestUrn)
         String nsDecls = getMetadataAttrs(urn)
-        StringBuffer replyBuff = new StringBuffer("<GetPassagePlus xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<leafnode>${isLeaf}</leafnode><range>${urn.isRange()}</range><context>${context}</context></request>\n")
+        StringBuffer replyBuff = new StringBuffer("<GetPassagePlus xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<leafnode>${isLeaf}</leafnode><range>${urn.isRange()}</range><context>${context}</context></request>\n")
 
         StringBuffer psgText = new StringBuffer()
         if (urn.isRange()) {
@@ -976,7 +969,7 @@ class CtsGraph {
     */
     String getGVRReply(CtsUrn requestUrn, Integer level) {
         CtsUrn urn = resolveVersion(requestUrn)
-        StringBuffer replyBuff = new StringBuffer("<GetValidReff xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<range>${urn.isRange()}</range></request>\n")
+        StringBuffer replyBuff = new StringBuffer("<GetValidReff xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<range>${urn.isRange()}</range></request>\n")
         replyBuff.append("<reply>\n<reff>\n")
 
         // 3 cases to consider:
