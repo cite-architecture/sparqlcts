@@ -7,7 +7,6 @@ apply plugin: 'maven'
 
 
 
-apply from: "conf.gradle"
 apply from: "versions.gradle"
 
 if (hasProperty('pub')) {
@@ -30,9 +29,28 @@ if (hasProperty('pub')) {
     }
 }
 
+if (hasProperty('conf')) {
+    System.err.print "Using configuration data from ${conf}"
+    File confFile = new File(conf)
+    if (! confFile.exists()) {
+        throw new Exception("No publication configuration file ${conf} found.")
+    } else {
+        apply from: conf
+    }
+
+} else {
+    File confFile = new File("conf.gradle")
+    if (! confFile.exists()) {
+        throw new Exception("No publication configuration file ${confFile} found\
+.")
+    } else {
+        println "Using default configuration in 'conf.gradle'"
+        apply from: "conf.gradle"
+    }
+}
 
 group = "edu.holycross.shot"
-version = "0.6.2"
+version = "0.6.4"
 
 repositories {
     mavenCentral()
