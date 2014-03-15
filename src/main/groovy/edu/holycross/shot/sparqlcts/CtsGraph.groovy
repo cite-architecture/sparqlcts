@@ -708,7 +708,7 @@ class CtsGraph {
 
 
 
-    // two possible wuery forms: when level is at max depth,
+    // two possible query forms: when level is at max depth,
     // and when is higher in citation hierarchy
     String getValidReffForNode(CtsUrn urn, Integer level) {
         StringBuffer replyBuff = new StringBuffer()
@@ -769,7 +769,7 @@ class CtsGraph {
 
         parsedReply.results.bindings.each { b ->
             if (b.ref) {
-                reply.append("<urn>${b.ref}</urn>\n")
+                reply.append("<urn>${b.ref?.value}</urn>\n")
             }
         }
         return reply.toString()
