@@ -63,28 +63,32 @@ if (!done) {
     CtsGraph ctsg = new CtsGraph("@tripleserver@")
     switch(req) {
         case "GetDescription":
-            println '<?xml-stylesheet type="text/xsl" href="xslt/gd.xsl"?>\n' + ctsg.getDescrReply(urnStr)
+	//println '<?xml-stylesheet type="text/xsl" href="xslt/gd.xsl"?>\n' + ctsg.getDescrReply(urnStr)
+	println ctsg.getDescrReply(urnStr)
             break
         case "GetPassagePlus":
-            println '<?xml-stylesheet type="text/xsl" href="xslt/gp.xsl"?>\n' + ctsg.getPassagePlusReply(urnStr, context)
+	//            println '<?xml-stylesheet type="text/xsl" href="xslt/gp.xsl"?>\n' + ctsg.getPassagePlusReply(urnStr, context)
+            println ctsg.getPassagePlusReply(urnStr, context)
         break
 
         case "GetPassage":
-            println '<?xml-stylesheet type="text/xsl" href="xslt/gp.xsl"?>\n' + ctsg.getPassageReply(urnStr, context)
+	//           println '<?xml-stylesheet type="text/xsl" href="xslt/gp.xsl"?>\n' + ctsg.getPassageReply(urnStr, context)
+           println ctsg.getPassageReply(urnStr, context)
         break
 
         case "GetPrevNextUrn":
-            println '<?xml-stylesheet type="text/xsl" href="xslt/gpn.xsl"?>\n' + ctsg.getPrevNextReply(urnStr)
+	//            println '<?xml-stylesheet type="text/xsl" href="xslt/gpn.xsl"?>\n' + ctsg.getPrevNextReply(urnStr)
+            println ctsg.getPrevNextReply(urnStr)
         break
 
         case "GetValidReff":
-            print '<?xml-stylesheet type="text/xsl" href="xslt/gvr.xsl"?>\n' 
+	//            print '<?xml-stylesheet type="text/xsl" href="xslt/gvr.xsl"?>\n' 
         String levelVal = request.getParameter("level")
         String reply = ""
         try {
            reply = ctsg.getGVRReply(urnStr, levelVal.toInteger())
         } catch (Exception e) {
-            reply = ctsg.getGVRReply(urnStr)
+	  reply = "<error>Unable to get GVR reply for ${urnStr}. Exception ${e}.</error>"
         }
         println reply
         break
