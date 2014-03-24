@@ -3,6 +3,6 @@
 
 
 project.ext {
-    tripleserver = "localhost:3030/folio/"
+    tripleserver = "localhost:3030/ds/"
     inventoryDir = "testinvs"
 }

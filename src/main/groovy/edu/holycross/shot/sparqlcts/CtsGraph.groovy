@@ -150,7 +150,16 @@ class CtsGraph {
         CtsUrn queryUrn
         if (requestUrn.isRange()) {
             CtsUrn nsUrn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}:${requestUrn.getRangeEnd()}")
-            queryUrn = resolveVersion(nsUrn)
+
+			// The citations in a range may not be leaf-nodes. But any contained leaf-node will do!
+			if ( isLeafNode(nsUrn) ){
+					queryUrn = resolveVersion(nsUrn)
+		    } else {
+					Integer lastSequenceOfUrn = getLastSequence(nsUrn)
+					String lastSeqUrn = getUrnForSequence(lastSequenceOfUrn, nsUrn.getUrnWithoutPassage())
+					queryUrn = new CtsUrn(lastSeqUrn)	
+			}
+
         } else if (isLeafNode(requestUrn)) {
             queryUrn = resolveVersion(requestUrn)
         } else {
@@ -179,7 +188,16 @@ class CtsGraph {
         CtsUrn queryUrn
         if (requestUrn.isRange()) {
             CtsUrn nsUrn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}:${requestUrn.getRangeEnd()}")
-            queryUrn = resolveVersion(nsUrn)
+
+			// The citations in a range may not be leaf-nodes. But any contained leaf-node will do!
+			if ( isLeafNode(nsUrn) ){
+					queryUrn = resolveVersion(nsUrn)
+		    } else {
+					Integer lastSequenceOfUrn = getLastSequence(nsUrn)
+					String lastSeqUrn = getUrnForSequence(lastSequenceOfUrn, nsUrn.getUrnWithoutPassage())
+					queryUrn = new CtsUrn(lastSeqUrn)	
+			}
+
         } else if (isLeafNode(requestUrn)) {
             queryUrn = resolveVersion(requestUrn)
         } else {
@@ -363,6 +381,27 @@ class CtsGraph {
     *
     * ************************************************ */
 
+    /** Finds the URN for a given work, with a given sequence
+	* Returns only one value, if there are more than one.
+    * @param urn A work-level URN.
+	* @param a sequence number.
+    * @returns A urn, as string.
+    */
+	String getUrnForSequence(Integer seq, String versionUrnStr ){
+
+        String ctsReply = getSparqlReply("application/json", qg.urnForSequence(seq, versionUrnStr))
+        def slurper = new groovy.json.JsonSlurper()
+        def parsedReply = slurper.parseText(ctsReply)
+
+        String urnStr
+        parsedReply.results.bindings.each { b ->
+            if (b.urn) {
+                urnStr = b.urn?.value
+            }
+        }
+        return urnStr
+	}
+	
     /** Finds the first sequence value for a set of URNs contained 
     * by a given URN.
     * @param urn A containing URN.
@@ -475,28 +514,45 @@ class CtsGraph {
 
 
     /** Finds the previous URN preceding a given URN.
+	* If the URN is a leaf node, returns the preceeding leaf node.
+	* If the URN is a non-leaf node, returns the URN of the preceeding
+	* citation at that level of the hierarchy.
     * @param urn CTS URN to test.
     * @returns The urn of the preceding citable node, as a String,
     * or a null String ("") if there is no preceding citable node.
     */
     String getPrevUrn(CtsUrn requestUrn) {
         CtsUrn urn
+		String replyString = ""
         if (requestUrn.isRange()) {
             urn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}:${requestUrn.getRangeBegin()}")
         } else {
             urn  = requestUrn
         }
 
-        StringBuffer reply = new StringBuffer()
-        String ctsReply =  getSparqlReply("application/json", qg.getPrevUrnQuery(urn))
-        def slurper = new groovy.json.JsonSlurper()
-        def parsedReply = slurper.parseText(ctsReply)
-        parsedReply.results.bindings.each { b ->
-            if (b.prevUrn) {
-                reply.append(b.prevUrn?.value)
-            }
-        }
-        return reply.toString()
+		if (isLeafNode(urn)){
+				StringBuffer reply = new StringBuffer()
+				String ctsReply =  getSparqlReply("application/json", qg.getPrevUrnQuery(urn))
+				def slurper = new groovy.json.JsonSlurper()
+				def parsedReply = slurper.parseText(ctsReply)
+				parsedReply.results.bindings.each { b ->
+					if (b.prevUrn) {
+						reply.append(b.prevUrn?.value)
+					}
+				}
+				replyString = reply.toString()
+		} else {
+		    	
+    		Integer depthUrn = urn.getCitationDepth()
+			Integer firstSequenceOfUrn = getFirstSequence(urn)
+			String firstSeqUrn = getUrnForSequence(firstSequenceOfUrn, urn.getUrnWithoutPassage())
+		    String prevLeafUrnStr= getPrevUrn(new CtsUrn(firstSeqUrn))	
+			CtsUrn prevLeafUrn = new CtsUrn(prevLeafUrnStr)
+			CtsUrn prevUrn = new CtsUrn("${prevLeafUrn.trimPassage(depthUrn)}")
+			replyString = prevUrn.asString
+				  	
+	    }	
+        return replyString
     }
 
 
@@ -508,23 +564,39 @@ class CtsGraph {
     */
     String getNextUrn(CtsUrn requestUrn) {
         CtsUrn urn
+		String replyString = ""
         if (requestUrn.isRange()) {
             urn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}:${requestUrn.getRangeEnd()}")
         } else {
             urn  = requestUrn
         }
 
+		if (isLeafNode(urn)){
 
-        StringBuffer reply = new StringBuffer()
-        String ctsReply =  getSparqlReply("application/json", qg.getNextUrnQuery(urn))
-        def slurper = new groovy.json.JsonSlurper()
-        def parsedReply = slurper.parseText(ctsReply)
-        parsedReply.results.bindings.each { b ->
-            if (b.nextUrn) {
-                reply.append(b.nextUrn?.value)
-            }
-        }
-        return reply.toString()
+				StringBuffer reply = new StringBuffer()
+				String ctsReply =  getSparqlReply("application/json", qg.getNextUrnQuery(urn))
+				def slurper = new groovy.json.JsonSlurper()
+				def parsedReply = slurper.parseText(ctsReply)
+				parsedReply.results.bindings.each { b ->
+					if (b.nextUrn) {
+						reply.append(b.nextUrn?.value)
+					}
+				}
+				replyString = reply.toString()
+
+		} else {
+		    	
+    		Integer depthUrn = urn.getCitationDepth()
+			Integer lastSequenceOfUrn = getLastSequence(urn)
+			String lastSeqUrn = getUrnForSequence(lastSequenceOfUrn, urn.getUrnWithoutPassage())
+		    String nextLeafUrnStr= getNextUrn(new CtsUrn(lastSeqUrn))	
+			CtsUrn nextLeafUrn = new CtsUrn(nextLeafUrnStr)
+			CtsUrn nextUrn = new CtsUrn("${nextLeafUrn.trimPassage(depthUrn)}")
+			replyString = nextUrn.asString
+				  	
+	    }	
+
+		return replyString
     }
 
 
@@ -538,7 +610,7 @@ class CtsGraph {
 
 
     /** Finds text contents of all URNs between a given pair of sequence numbers, 
-    * non-inclusive.  
+    * inclusive (!! n.b. the previous version worked non-inclusively)  
     * @param startInt Starting point in the sequence.
     * @param endInt End point in the sequence.
     * @param workUrnStr URN identifying a work this sequence belongs to,
@@ -553,15 +625,17 @@ class CtsGraph {
         String ctsReply =  getSparqlReply("application/json", qg.getFillQuery(startInt, endInt, workUrnStr))
         def slurper = new groovy.json.JsonSlurper()
         def parsedReply = slurper.parseText(ctsReply)
-        
         String currentWrapper = ""
+		def citeDiffLevel = 0
         parsedReply.results.bindings.each { b ->
             if (b.anc) {
                 if (b.anc?.value != currentWrapper) {
+				    citeDiffLevel = formatter.levelDiff(b.anc?.value, currentWrapper, b.xpt?.value)
                     if (currentWrapper == "") {
-                    } else { 
-                        reply.append(formatter.trimClose(b.anc?.value, b.xpt?.value, 1))
-                        reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, 1))
+					        reply.append(formatter.openAncestors(b.anc?.value))
+                    } else  {
+							reply.append(formatter.trimClose(b.anc?.value, b.xpt?.value,citeDiffLevel))
+							reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, citeDiffLevel))
                     }
                     currentWrapper = b.anc?.value
                 }
@@ -570,35 +644,35 @@ class CtsGraph {
                 reply.append(b.txt?.value)
             }
         }
+	    reply.append(formatter.closeAncestors(currentWrapper))
+		
         return reply.toString()
+
     }
 
 
     String getRangeText(CtsUrn urn) {
         StringBuffer reply = new StringBuffer()
-        
-        reply.append getNodeText(new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}"), 0, true, false)
 
         CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}")
         CtsUrn urn2 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeEnd()}")
-        Integer startAfterStr 
-        Integer endBeforeStr
-        
-        if (isLeafNode(urn1)) {
-            startAfterStr =  getSequence(urn1)
-            
-        } else {
-            startAfterStr = getLastSequence(urn1)
-        }
-        if (isLeafNode(urn2)) {
-            endBeforeStr = getSequence(urn2)
-            
-        } else {
-            endBeforeStr = getFirstSequence(urn2)
-        }
-        reply.append(getFillText(startAfterStr.toInteger(), endBeforeStr.toInteger(), "${urn.getUrnWithoutPassage()}"))
+        Integer startAtStr 
+        Integer endAtStr
 
-        reply.append getNodeText(new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeEnd()}"), 0, false, true)
+        if (isLeafNode(urn1)) {
+            startAtStr =  getSequence(urn1)
+        } else {
+            startAtStr = getFirstSequence(urn1)
+        }
+		
+        if (isLeafNode(urn2)) {
+            endAtStr = getSequence(urn2)
+        } else {
+            endAtStr = getLastSequence(urn2)
+        }
+
+	    reply.append(getFillText(startAtStr.toInteger(), endAtStr.toInteger(), "${urn.getUrnWithoutPassage()}"))
+
         return reply.toString()
     }
 
@@ -607,14 +681,7 @@ class CtsGraph {
     throws Exception {
         try {
             CtsUrn urn  = new CtsUrn(urnStr)
-            return getNodeText(urn)
-        } catch (Exception e) {
-            throw new Exception ("getNodeText: ${e}")
-        }
-        
-    }
-
-
+            return getNodeText(urn) } catch (Exception e) { throw new Exception ("getNodeText: ${e}") } } 
     /** Gets the text content of a single citation node.  Note that
     * this will be well-formed if the URN refers to a leaf citation node,
     * but could be a set of elements if the URN is a containing node.
@@ -644,24 +711,18 @@ class CtsGraph {
         def slurper = new groovy.json.JsonSlurper()
         def parsedReply = slurper.parseText(ctsReply)
         def currentWrapper = ""
-        parsedReply.results.bindings.each { b ->
+		def citeDiffLevel = 0
+        parsedReply.results.bindings.eachWithIndex { b, i ->
             if (b.anc) {
                 if (b.anc?.value != currentWrapper) {
-                   if (debug) {
-                    System.err.println "SHIFT: FROM #${currentWrapper}# to ${b.anc?.value}"
-                    System.err.println "OPEN? ${openXml}.  CLOSE? ${closeXml}"
-                    }
+				    citeDiffLevel = formatter.levelDiff(b.anc?.value, currentWrapper, b.xpt?.value)
                     if (currentWrapper == "") {
                         if (openXml)  {
                             reply.append(formatter.openAncestors(b.anc?.value))
                         }
                     } else  {
-                        if (closeXml) {
-                            reply.append(formatter.trimClose(b.anc?.value, b.xpt?.value,1))
-                        }
-                        if (openXml) {
-                            reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, 1))
-                        }
+							reply.append(formatter.trimClose(b.anc?.value, b.xpt?.value,citeDiffLevel))
+							reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, citeDiffLevel))
                     }
                     currentWrapper = b.anc?.value
                 }
@@ -874,7 +935,6 @@ class CtsGraph {
         boolean isLeaf = isLeafNode(requestUrn)
         CtsUrn urn = resolveVersion(requestUrn)
         String nsDecls = getMetadataAttrs(urn)
-
         StringBuffer psgText = new StringBuffer()
         if (urn.isRange()) {
             psgText.append(getRangeText(urn))

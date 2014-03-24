@@ -83,6 +83,7 @@ dependencies {
         exclude group: "javax.jms", module: "jms"
     }
 
+	groovy "org.codehaus.groovy:groovy:$ext.groovyVersion"
     compile group: "org.codehaus.groovy", name : "groovy-all", version : groovyVersion
     compile group: 'edu.harvard.chs', name : 'cite' , version: citeVersion
     compile group: 'com.thaiopensource', name:'jing', version: '20091111'
