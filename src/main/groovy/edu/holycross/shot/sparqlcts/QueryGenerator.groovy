@@ -16,16 +16,16 @@ class QueryGenerator {
 
     // for a version-level query
     String getDescrQuery(CtsUrn psgUrn) {
+		def vers = "${psgUrn.getUrnWithoutPassage()}"
         return """
         ${CtsDefinitions.prefixPhrase}
 
         SELECT ?gname ?title ?lab WHERE {
-          ?vers dcterms:title ?lab .
-          ?vers cts:belongsTo ?wk .
+          <${vers}> dcterms:title ?lab .
+          <${vers}> cts:belongsTo ?wk .
           ?wk dcterms:title ?title .
           ?wk cts:belongsTo ?tg .
           ?tg dcterms:title ?gname .
-          FILTER (str(?vers) = "${psgUrn.getUrnWithoutPassage()}") .
         }
         """
     }
@@ -36,12 +36,11 @@ class QueryGenerator {
         return """
         ${CtsDefinitions.prefixPhrase}
         SELECT ?vlang ?ns ?abbr WHERE {
-          ?psg cts:belongsTo ?vers .
+          <${psgUrn.toString()}> cts:belongsTo ?vers .
           ?vers cts:belongsTo ?doc .
           ?vers cts:xmlns ?ns .
            ?vers cts:translationLang ?vlang .
           ?ns cts:abbreviatedBy ?abbr .
-          FILTER (str(?psg) = "${psgUrn.toString()}" ) .        
         }
         """
     }
@@ -57,12 +56,12 @@ class QueryGenerator {
         return """
         ${CtsDefinitions.prefixPhrase}
         SELECT ?psg ?ns ?abbr ?lang WHERE {
-          ?psg cts:belongsTo ?doc .
+          <${psgUrn.toString()}> cts:belongsTo ?doc .
           ?doc cts:xmlns ?ns .
           ?doc cts:belongsTo ?wk .
           ?wk cts:lang ?lang .
           ?ns cts:abbreviatedBy ?abbr .
-          FILTER (str(?psg) = "${psgUrn.toString()}" ) .
+		  BIND(<${psgUrn.toString()}> as ?psg)
         }
         """
     }
@@ -77,8 +76,8 @@ class QueryGenerator {
         ${CtsDefinitions.prefixPhrase}
        SELECT   ?vers ?wk
         WHERE {
-        ?vers cts:belongsTo  ?wk  .
-	    FILTER (str(?wk)="${workLevelUrn.getUrnWithoutPassage()}")  .
+        ?vers cts:belongsTo  <${workLevelUrn.getUrnWithoutPassage()}>  .
+	    BIND (<${workLevelUrn.getUrnWithoutPassage()}> as ?wk)
         }
         """
     }
@@ -94,41 +93,39 @@ class QueryGenerator {
      return getLeafNodeQuery(urn, 0)
     }
 
-    String getLeafNodeQuery(CtsUrn urn, Integer context) {
-//    String docUrnStr = "urn:cts:${urn.getCtsNamespace()}:${urn.getTextGroup()}.${urn.getWork()}"
-        return """
-        ${CtsDefinitions.prefixPhrase}
+	String getLeafNodeQuery(CtsUrn urn, Integer context) {
+			//    String docUrnStr = "urn:cts:${urn.getCtsNamespace()}:${urn.getTextGroup()}.${urn.getWork()}"
+			return """
+					${CtsDefinitions.prefixPhrase}
 
-        SELECT ?psg ?txt ?anc ?xpt WHERE {
-          ?psg cts:belongsTo+ ?doc .
-          ?psg cts:hasTextContent ?txt .
-          ?psg cts:hasSequence ?s .
-          ?psg hmt:xpTemplate ?xpt .
-          ?psg hmt:xmlOpen ?anc  .
+			SELECT ?psg ?txt ?anc ?xpt WHERE {
+					?psg cts:belongsTo+ <${urn.getUrnWithoutPassage()}> .
+							?psg cts:hasTextContent ?txt .
+							?psg cts:hasSequence ?s .
+							?psg hmt:xpTemplate ?xpt .
+							?psg hmt:xmlOpen ?anc  .
 
-          { SELECT (xsd:int(?seq) + ${context} AS ?max)
-            WHERE {
-            ?urn cts:hasSequence ?seq .
-	    FILTER (str(?urn) =  "${urn}")  .
-           }
-          }
+							{
+									{ SELECT (xsd:int(?seq) + ${context} AS ?max)
+											WHERE {
+													<${urn}> cts:hasSequence ?seq .
+											}
+									}
 
-          { SELECT (xsd:int(?seq) - ${context} AS ?min)
-            WHERE {
-            ?urn cts:hasSequence ?seq .
-	    FILTER (str(?urn) =  "${urn}")  .
-           }
-          }
+									{ SELECT (xsd:int(?seq) - ${context} AS ?min)
+											WHERE {
+													<${urn}> cts:hasSequence ?seq .
+											}
+									}
+							}
 
+					FILTER (?s <= ?max) .
+							FILTER (?s >= ?min) .
 
-      FILTER (?s <= ?max) .
-      FILTER (?s >= ?min) .
-
-     FILTER (str(?doc) = "${urn.getUrnWithoutPassage()}") .
-     }
-     ORDER BY ?s 
-     """        
-    }   
+			}
+			ORDER BY ?s 
+					"""        
+	}   
 
 
     /** Builds SPARQL query string to determine if a 
@@ -141,8 +138,7 @@ class QueryGenerator {
         ${CtsDefinitions.prefixPhrase}
         ASK
          WHERE {
-           ?urn cts:hasTextContent ?txt .
-            FILTER (str(?urn)="${urn}")
+           <${urn}> cts:hasTextContent ?txt .
          }"""
     }
 
@@ -163,9 +159,8 @@ class QueryGenerator {
         ${CtsDefinitions.prefixPhrase}
         SELECT   ?urn ?seq
          WHERE {
-            ?urn  cts:containedBy*  ?container  .
+            ?urn  cts:containedBy*  <${containingUrn}>  .
             ?urn cts:hasSequence ?seq .        
-            FILTER (str(?container)="${containingUrn}") 
          }
         ORDER BY DESC(?seq)
         LIMIT 1
@@ -173,7 +168,7 @@ class QueryGenerator {
       }
 
     /** Builds SPARQL query string to find the URN and
-    * sequence number of the last citable node contained in
+    * sequence number of the first citable node contained in
     * a given URN.  If the URN is a leaf node, returns the
     * the query to identify URN and sequence of that node.
     * @param urn The urn to test.
@@ -184,9 +179,8 @@ class QueryGenerator {
       ${CtsDefinitions.prefixPhrase}
       SELECT   ?urn ?seq
          WHERE {
-            ?urn  cts:containedBy*  ?container  .
+            ?urn  cts:containedBy*  <${containingUrn}>  .
             ?urn cts:hasSequence ?seq .        
-            FILTER (str(?container)="${containingUrn}") 
          }
       ORDER BY ?seq
       LIMIT 1
@@ -207,8 +201,7 @@ class QueryGenerator {
       ${CtsDefinitions.prefixPhrase}
       SELECT   ?container 
          WHERE {
-            ?urn  cts:belongsTo  ?container  .
-            FILTER (str(?urn)="${queryUrn}") 
+            <${queryUrn}>  cts:belongsTo  ?container  .
          }
       """
      }
@@ -230,17 +223,16 @@ class QueryGenerator {
      SELECT ?u ?txt ?anc ?xpt WHERE {
     	?u cts:hasSequence ?s .
     	?u cts:hasTextContent ?txt .
-        ?u cts:belongsTo ?doc .
+        ?u cts:belongsTo <${docUrn}> .
         ?u hmt:xpTemplate ?xpt .
         ?u hmt:xmlOpen ?anc  .
 
     
-    	{ SELECT ?seq1  ?urn1
+    {	{ SELECT ?seq1  ?urn1
     	(ROUND (?seq1) AS ?min)
     	WHERE  {
-                ?urn1  cts:containedBy*  ?container  .
+                ?urn1  cts:containedBy* <${urn}>   .
                 ?urn1 cts:hasSequence ?seq1 .        
-                FILTER (str(?container)="${urn}") 
              }
     	ORDER BY ?seq1
     	LIMIT 1 
@@ -250,19 +242,17 @@ class QueryGenerator {
     	{ SELECT ?seq2 ?urn2
     	(ROUND (?seq2) AS ?max)
     	WHERE  {
-                ?urn2  cts:containedBy*  ?container  .
+                ?urn2  cts:containedBy*  <${urn}>  .
                 ?urn2 cts:hasSequence ?seq2 .        
-                FILTER (str(?container)="${urn}") 
              }
     	ORDER BY DESC(?seq2)
     	LIMIT 1
     	} .
-        
+    }    
     
     
     	FILTER (?s <= ?max) .
     	FILTER (?s >= ?min) .
-        FILTER (str(?doc) = "${docUrn}") .
     }
     ORDER BY ?s
 
@@ -282,6 +272,7 @@ class QueryGenerator {
      ${CtsDefinitions.prefixPhrase}
 
     SELECT ?u ?txt ?anc ?xpt WHERE {
+		?u cts:belongsTo+ <${workUrnStr}> .
     	?u cts:hasSequence ?s .
     	?u cts:hasTextContent ?txt .
         ?u hmt:xpTemplate ?xpt .
@@ -289,7 +280,6 @@ class QueryGenerator {
 
     	FILTER (?s > "${startSeq}"^^xsd:integer) .    
     	FILTER (?s < "${endSeq}"^^xsd:integer) .
-        FILTER (regex(str(?u), "${workUrnStr}" ) ) .
     }
     ORDER BY ?s
     """
@@ -301,9 +291,9 @@ class QueryGenerator {
      return """
        ${CtsDefinitions.prefixPhrase}
        SELECT ?psg ?u  WHERE {
-         ?psg cts:belongsTo ?u .
+         <${urnStr}> cts:belongsTo ?u .
          ?u rdf:type cts:Translation .
-         FILTER(str(?psg) =  "${urnStr}" ) .
+         BIND(<${urnStr}> as ?psg )
        }
       """
    }
@@ -315,14 +305,13 @@ class QueryGenerator {
     
     SELECT ?nextUrn ?nextSeq WHERE {
     ?nextUrn cts:hasSequence ?nextSeq .
-    { SELECT ?urn ?seq
+	?nextUrn cts:belongsTo+ <${workUrnStr}> .
+    { SELECT  ?seq
         	WHERE  {
-                   ?urn cts:hasSequence ?seq .       
-                   FILTER (str(?urn)="${urn}") .
+                   <${urn}> cts:hasSequence ?seq .       
                  }
       } .
     FILTER (?nextSeq = ?seq + 1) .
-    FILTER (regex(str(?nextUrn), "${workUrnStr}" ) ) .
     }
     """
   }
@@ -335,14 +324,13 @@ class QueryGenerator {
     
     SELECT ?prevUrn ?prevSeq WHERE {
     ?prevUrn cts:hasSequence ?prevSeq .
-    { SELECT ?urn ?seq
+	?prevUrn cts:belongsTo+ <${workUrnStr}> .
+    { SELECT ?seq
         	WHERE  {
-                   ?urn cts:hasSequence ?seq .       
-                   FILTER (str(?urn)="${urn}") .
+                   <${urn}> cts:hasSequence ?seq .       
                  }
       } .
     FILTER (?prevSeq = ?seq - 1) .
-    FILTER (regex(str(?prevUrn), "${workUrnStr}" ) ) .
     }
     """
   }
@@ -352,8 +340,8 @@ class QueryGenerator {
     ${CtsDefinitions.prefixPhrase}
     SELECT ?urn ?seq
     	WHERE  {
-               ?urn cts:hasSequence ?seq .       
-               FILTER (str(?urn)="${urn}") .
+               <${urn}> cts:hasSequence ?seq .       
+               BIND( <${urn}> as ?urn )
              }
     """
   }
@@ -361,42 +349,48 @@ class QueryGenerator {
 
 
   /** Forms SPARQL query to find greatest citation depth
-  * anywhere in a work.
+  * anywhere in a work. Input is a work-level URN.
   */
   String getLeafDepthForWorkQuery(CtsUrn urn) {
     return """
     ${CtsDefinitions.prefixPhrase}
     SELECT (MAX(?d) AS ?deepest)
     WHERE {
+	  ?c cts:belongsTo+ <${urn}> .
       ?leaf cts:containedBy* ?c .
       ?leaf cts:citationDepth ?d .
-      FILTER (regex(str(?c), "${urn}" ) ) .
     }
     """
   }
 
-
+  /** Forms SPARQL query to find the greatest citation depth
+  * anywhere in a work. Input is citation-level URN.
+  */
   String getLeafDepthQuery(CtsUrn urn) {
+    String workUrnStr = urn.getUrnWithoutPassage()
     return """
     ${CtsDefinitions.prefixPhrase}
     SELECT (MAX(?d) AS ?deepest)
     WHERE {
+      ?c cts:belongsTo+ <${workUrnStr}> .
       ?leaf cts:containedBy* ?c .
       ?leaf cts:citationDepth ?d .
-      FILTER (str(?c) = "${urn}" ) .
     }
     """
   }
 
+  /* Forms SPARQL query to find all urns at a given depth
+  *  given a work-level URN and an integer (depth) as input
+  */
   String getWorkGVRQuery(CtsUrn urn, Integer level) {
     return """
     ${CtsDefinitions.prefixPhrase}
     SELECT ?ref (MIN(?s) AS ?st)
     WHERE {
-      ?ref cts:citationDepth ${level} .
+      ?leaf cts:belongsTo+ <${urn}> .
       ?leaf cts:containedBy* ?ref .
       ?leaf cts:hasSequence ?s .
-      FILTER (regex(str(?ref), "${urn}" ) ) .
+      ?ref cts:citationDepth ${level} .
     }
     GROUP BY ?ref
     ORDER BY ?st
@@ -404,18 +398,23 @@ class QueryGenerator {
   }
 
 
-// level ...???
+  /* Forms SPARQL query to find all URNs at a given depth (@level)
+  *  between two leaf-nodes, identified by their sequence numbers
+  *  (@startCount, @endCount). Requires a word-level URN. Note
+  *  'distinct', which is necessary when the level requested is lower
+  *  than the maximum citation-depth.
+  */
   String getFillGVRQuery(Integer startCount, Integer endCount, Integer level, String workUrn) {
     return """
     ${CtsDefinitions.prefixPhrase}
-    SELECT ?ref 
+    SELECT distinct ?ref 
     WHERE {
-      ?ref cts:citationDepth ${level} .
+      ?u cts:belongsTo+ <${workUrn}> .
       ?u cts:containedBy* ?ref .
       ?u cts:hasSequence ?s .
+      ?ref cts:citationDepth ${level} .
       FILTER (?s > "${startCount}"^^xsd:integer) .    
       FILTER (?s < "${endCount}"^^xsd:integer) .
-      FILTER (regex(str(?u), "${workUrn}" ) ) .
     }
     ORDER BY ?s
    """
@@ -426,11 +425,10 @@ class QueryGenerator {
     ${CtsDefinitions.prefixPhrase}
     SELECT ?ref (MIN(?s) AS ?startSeq)
     WHERE {
-      ?ref cts:containedBy* ?c .
+      ?ref cts:containedBy* <${urn}> .
       ?ref cts:citationDepth  ${level} .
       ?leaf cts:containedBy* ?ref .
       ?leaf cts:hasSequence ?s .
-      FILTER (str(?c) = "${urn}" )  .
     }
     GROUP BY ?ref
     ORDER BY ?startSeq
