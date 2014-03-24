@@ -60,7 +60,7 @@ if (request.getParameter("context")) {
 }
 
 if (!done) {
-    CtsGraph ctsg = new CtsGraph("http://@tripleserver@")
+    CtsGraph ctsg = new CtsGraph("@tripleserver@")
     switch(req) {
         case "GetDescription":
             println '<?xml-stylesheet type="text/xsl" href="xslt/gd.xsl"?>\n' + ctsg.getDescrReply(urnStr)
