@@ -327,7 +327,7 @@ return """
 ${CtsDefinitions.prefixPhrase}
 
 SELECT ?nextUrn ?nextSeq WHERE {
-	<${urn}> cite:next ?nextUrn .
+	<${urn}> cts:next ?nextUrn .
 	?nextUrn cts:hasSequence ?nextSeq .
 }
 """
@@ -340,7 +340,7 @@ return """
 ${CtsDefinitions.prefixPhrase}
 
 SELECT ?prevUrn ?prevSeq WHERE {
-<${urn}> cite:prev ?prevUrn .
+<${urn}> cts:prev ?prevUrn .
 ?prevUrn cts:hasSequence ?prevSeq .
 }
 """
