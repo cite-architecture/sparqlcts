@@ -262,11 +262,14 @@ class QueryGenerator {
 
 
     /** Builds SPARQL query string to find URN and text contents
-    * of all URNs between a given pair of URNs, non-inclusive.
-    * @param urn The urn to test.
+    * of all URNs between a given pair of URNs, identified by sequence-number, inclusive.
+    * N.b. this is a change from the previous, non-inclusive version of the function.
+    * @param startSeq The starting sequence number
+	* @param endSeq The ending sequence number
+	* @param workUrnStr A version-level URN
     * @returns A complete SPARQL query string.
     */
-// modify to use belongsTo verb?
+
    String getFillQuery(Integer startSeq, Integer endSeq, String workUrnStr) {
    return """
      ${CtsDefinitions.prefixPhrase}
@@ -278,12 +281,13 @@ class QueryGenerator {
         ?u hmt:xpTemplate ?xpt .
         ?u hmt:xmlOpen ?anc  .
 
-    	FILTER (?s > "${startSeq}"^^xsd:integer) .    
-    	FILTER (?s < "${endSeq}"^^xsd:integer) .
+    	FILTER (?s >= "${startSeq}"^^xsd:integer) .    
+    	FILTER (?s <= "${endSeq}"^^xsd:integer) .
     }
     ORDER BY ?s
     """
     }
+
 
 
    String isTransQuery(CtsUrn urn) {
@@ -298,140 +302,147 @@ class QueryGenerator {
       """
    }
 
-   String getNextUrnQuery(CtsUrn urn) {
-    String workUrnStr = urn.getUrnWithoutPassage()
-    return """
-    ${CtsDefinitions.prefixPhrase}
-    
-    SELECT ?nextUrn ?nextSeq WHERE {
-    ?nextUrn cts:hasSequence ?nextSeq .
-	?nextUrn cts:belongsTo+ <${workUrnStr}> .
-    { SELECT  ?seq
-        	WHERE  {
-                   <${urn}> cts:hasSequence ?seq .       
-                 }
-      } .
-    FILTER (?nextSeq = ?seq + 1) .
-    }
-    """
-  }
+    /** Builds SPARQL query string to find URN at a given sequence
+    * @param seq The sequence number.
+	* @param versionUrnStr a version-level URN.
+    * @returns A complete SPARQL query string.
+    */
+
+String urnForSequence(Integer seq, String versionUrnStr){
+
+return """
+${CtsDefinitions.prefixPhrase}
+
+SELECT ?urn WHERE {
+	?urn cts:belongsTo <${versionUrnStr}> .
+	?urn cts:hasSequence ${seq} .
+}
+"""
+}
 
 
-   String getPrevUrnQuery(CtsUrn urn) {
-    String workUrnStr = urn.getUrnWithoutPassage()
-    return """
-    ${CtsDefinitions.prefixPhrase}
-    
-    SELECT ?prevUrn ?prevSeq WHERE {
-    ?prevUrn cts:hasSequence ?prevSeq .
-	?prevUrn cts:belongsTo+ <${workUrnStr}> .
-    { SELECT ?seq
-        	WHERE  {
-                   <${urn}> cts:hasSequence ?seq .       
-                 }
-      } .
-    FILTER (?prevSeq = ?seq - 1) .
-    }
-    """
-  }
+String getNextUrnQuery(CtsUrn urn) {
+String workUrnStr = urn.getUrnWithoutPassage()
+return """
+${CtsDefinitions.prefixPhrase}
 
-  String getSeqQuery(CtsUrn urn) {
-   return """
-    ${CtsDefinitions.prefixPhrase}
-    SELECT ?urn ?seq
-    	WHERE  {
-               <${urn}> cts:hasSequence ?seq .       
-               BIND( <${urn}> as ?urn )
-             }
-    """
-  }
+SELECT ?nextUrn ?nextSeq WHERE {
+	<${urn}> cite:next ?nextUrn .
+	?nextUrn cts:hasSequence ?nextSeq .
+}
+"""
+}
 
 
+String getPrevUrnQuery(CtsUrn urn) {
+String workUrnStr = urn.getUrnWithoutPassage()
+return """
+${CtsDefinitions.prefixPhrase}
 
-  /** Forms SPARQL query to find greatest citation depth
-  * anywhere in a work. Input is a work-level URN.
-  */
-  String getLeafDepthForWorkQuery(CtsUrn urn) {
-    return """
-    ${CtsDefinitions.prefixPhrase}
-    SELECT (MAX(?d) AS ?deepest)
-    WHERE {
-	  ?c cts:belongsTo+ <${urn}> .
-      ?leaf cts:containedBy* ?c .
-      ?leaf cts:citationDepth ?d .
-    }
-    """
-  }
+SELECT ?prevUrn ?prevSeq WHERE {
+<${urn}> cite:prev ?prevUrn .
+?prevUrn cts:hasSequence ?prevSeq .
+}
+"""
+}
 
-  /** Forms SPARQL query to find the greatest citation depth
-  * anywhere in a work. Input is citation-level URN.
-  */
-  String getLeafDepthQuery(CtsUrn urn) {
-    String workUrnStr = urn.getUrnWithoutPassage()
-    return """
-    ${CtsDefinitions.prefixPhrase}
-    SELECT (MAX(?d) AS ?deepest)
-    WHERE {
-      ?c cts:belongsTo+ <${workUrnStr}> .
-      ?leaf cts:containedBy* ?c .
-      ?leaf cts:citationDepth ?d .
-    }
-    """
-  }
-
-  /* Forms SPARQL query to find all urns at a given depth
-  *  given a work-level URN and an integer (depth) as input
-  */
-  String getWorkGVRQuery(CtsUrn urn, Integer level) {
-    return """
-    ${CtsDefinitions.prefixPhrase}
-    SELECT ?ref (MIN(?s) AS ?st)
-    WHERE {
-      ?leaf cts:belongsTo+ <${urn}> .
-      ?leaf cts:containedBy* ?ref .
-      ?leaf cts:hasSequence ?s .
-      ?ref cts:citationDepth ${level} .
-    }
-    GROUP BY ?ref
-    ORDER BY ?st
-    """
-  }
+String getSeqQuery(CtsUrn urn) {
+return """
+${CtsDefinitions.prefixPhrase}
+SELECT ?urn ?seq
+WHERE  {
+	   <${urn}> cts:hasSequence ?seq .       
+	   BIND( <${urn}> as ?urn )
+	 }
+"""
+}
 
 
-  /* Forms SPARQL query to find all URNs at a given depth (@level)
-  *  between two leaf-nodes, identified by their sequence numbers
-  *  (@startCount, @endCount). Requires a word-level URN. Note
-  *  'distinct', which is necessary when the level requested is lower
-  *  than the maximum citation-depth.
-  */
-  String getFillGVRQuery(Integer startCount, Integer endCount, Integer level, String workUrn) {
-    return """
-    ${CtsDefinitions.prefixPhrase}
-    SELECT distinct ?ref 
-    WHERE {
-      ?u cts:belongsTo+ <${workUrn}> .
-      ?u cts:containedBy* ?ref .
-      ?u cts:hasSequence ?s .
-      ?ref cts:citationDepth ${level} .
-      FILTER (?s > "${startCount}"^^xsd:integer) .    
-      FILTER (?s < "${endCount}"^^xsd:integer) .
-    }
-    ORDER BY ?s
-   """
-  }
 
-  String getGVRNodeQuery(CtsUrn urn, Integer level) {
-    return """
-    ${CtsDefinitions.prefixPhrase}
-    SELECT ?ref (MIN(?s) AS ?startSeq)
-    WHERE {
-      ?ref cts:containedBy* <${urn}> .
-      ?ref cts:citationDepth  ${level} .
-      ?leaf cts:containedBy* ?ref .
-      ?leaf cts:hasSequence ?s .
-    }
-    GROUP BY ?ref
-    ORDER BY ?startSeq
-    """
-  }
+/** Forms SPARQL query to find greatest citation depth
+* anywhere in a work. Input is a work-level URN.
+*/
+String getLeafDepthForWorkQuery(CtsUrn urn) {
+return """
+${CtsDefinitions.prefixPhrase}
+SELECT (MAX(?d) AS ?deepest)
+WHERE {
+?c cts:belongsTo+ <${urn}> .
+?leaf cts:containedBy* ?c .
+?leaf cts:citationDepth ?d .
+}
+"""
+}
+
+/** Forms SPARQL query to find the greatest citation depth
+* anywhere in a work. Input is citation-level URN.
+*/
+String getLeafDepthQuery(CtsUrn urn) {
+String workUrnStr = urn.getUrnWithoutPassage()
+return """
+${CtsDefinitions.prefixPhrase}
+SELECT (MAX(?d) AS ?deepest)
+WHERE {
+?c cts:belongsTo+ <${workUrnStr}> .
+?leaf cts:containedBy* ?c .
+?leaf cts:citationDepth ?d .
+}
+"""
+}
+
+/* Forms SPARQL query to find all urns at a given depth
+*  given a work-level URN and an integer (depth) as input
+*/
+String getWorkGVRQuery(CtsUrn urn, Integer level) {
+return """
+${CtsDefinitions.prefixPhrase}
+SELECT ?ref (MIN(?s) AS ?st)
+WHERE {
+?leaf cts:belongsTo+ <${urn}> .
+?leaf cts:containedBy* ?ref .
+?leaf cts:hasSequence ?s .
+?ref cts:citationDepth ${level} .
+}
+GROUP BY ?ref
+ORDER BY ?st
+"""
+}
+
+
+/* Forms SPARQL query to find all URNs at a given depth (@level)
+*  between two leaf-nodes, identified by their sequence numbers
+*  (@startCount, @endCount). Requires a word-level URN. Note
+*  'distinct', which is necessary when the level requested is lower
+*  than the maximum citation-depth.
+*/
+String getFillGVRQuery(Integer startCount, Integer endCount, Integer level, String workUrn) {
+return """
+${CtsDefinitions.prefixPhrase}
+SELECT distinct ?ref 
+WHERE {
+?u cts:belongsTo+ <${workUrn}> .
+?u cts:containedBy* ?ref .
+?u cts:hasSequence ?s .
+?ref cts:citationDepth ${level} .
+FILTER (?s > "${startCount}"^^xsd:integer) .    
+FILTER (?s < "${endCount}"^^xsd:integer) .
+}
+ORDER BY ?s
+"""
+}
+
+String getGVRNodeQuery(CtsUrn urn, Integer level) {
+return """
+${CtsDefinitions.prefixPhrase}
+SELECT ?ref (MIN(?s) AS ?startSeq)
+WHERE {
+?ref cts:containedBy* <${urn}> .
+?ref cts:citationDepth  ${level} .
+?leaf cts:containedBy* ?ref .
+?leaf cts:hasSequence ?s .
+}
+GROUP BY ?ref
+ORDER BY ?startSeq
+"""
+}
 }

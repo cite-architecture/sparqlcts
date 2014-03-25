@@ -16,6 +16,50 @@ class XmlFormatter {
     }
 
 
+	/**
+	* Given two ancestor xpath statements, report on whether, and report 
+	* the shallowest (furthest left) level at which they are the same.
+	* e.g. 
+	*      '1.1.1.1.5' and '1.1.1.1.5' --> 0
+	*      '1.1.1.2.1' and '1.1.1.1.1' --> 4
+	*      '1.1.1.1.1' and '1.1.2.1.1' --> 3
+	*      '1.1.1.1.1' and '1.2.1.1.1' --> 2
+	*	   An error (xpaths of different length, for example, returns -1
+	* @param anc1 The first Ancestor Xpath
+	* @param anc2 The second Ancestor Xpath
+	* @param xp The XPath template
+	* @returns An integer, -1 for error, 0 for perfect match, otherwise indicating the level of the shallowest point of difference
+	*/
+    Integer levelDiff ( String anc1, String anc2, String xp){
+		def pathParts1 = anc1.split(/\//)
+		def pathParts2 = anc2.split(/\//)
+		String temp1 = ""
+		String temp2 = ""
+		Integer counter
+		def retVal = 0
+		if (pathParts1.size() != pathParts2.size()){
+			return -1;
+	    } else {
+			def citeIndex = citationIndices(xp)
+			Integer howMany = citeIndex.size()
+			Integer lastIndex = citeIndex[howMany - 1].toInteger()
+			Integer firstIndex = citeIndex[0].toInteger()
+			lastIndex--
+			firstIndex--
+			counter = 0
+				for (i in firstIndex .. lastIndex){
+					if (pathParts1[i] != pathParts2[i]){
+						retVal = counter
+						break
+					}
+				    counter++
+				}
+				if (counter > lastIndex){ retVal = 0 }
+		}
+		return retVal
+	}
+
+
     /**
     * Converts an XPath expression for the ancestors of a node
     * to the opening XML markup of that node in the
@@ -30,30 +74,28 @@ class XmlFormatter {
     }
 
     String trimClose(String xpAncestor, String xpt, Integer limit) {
-	StringBuffer formatted = new StringBuffer()
-	def pathParts = xpAncestor.split(/\//)
-
-        def citeIndex = citationIndices(xpt)
-        def limitIndex = citeIndex[limit-1]
-        def pathMax = citeIndex[citeIndex.size() - 2]
-        for (i in limitIndex .. pathMax) {
-            formatted.append("</" + stripFilters(pathParts[i]) + ">")
-        }
+			if (limit < 1) { limit = 1 }
+			StringBuffer formatted = new StringBuffer()
+			def pathParts = xpt.split(/\//)
+			def citeIndex = citationIndices(xpt)
+			if (limit >= citeIndex.size()){ limit = (citeIndex.size() - 1) }
+			def limitIndex = citeIndex[limit-1]
+			def pathMax = citeIndex[citeIndex.size() - 2]
+			for (i in pathMax .. limitIndex) {
+				formatted.append("</" + stripFilters(pathParts[i]) + ">")
+			}
 	return formatted.toString()
     }
 
     String trimAncestors(String xpAncestor, String xpt, Integer limit) {
 	StringBuffer formatted = new StringBuffer()
 	def pathParts = xpAncestor.split(/\//)
-
-        def citeIndex = citationIndices(xpt)
-        System.err.println "SHOW ME  " + citeIndex
-        def limitIndex = citeIndex[limit-1]
-        def pathMax = citeIndex[citeIndex.size() - 2]
-        System.err.println "TRIM ANCESTORS: " + citeIndex + " indexing " + pathParts
-        for (i in pathMax .. limitIndex) {
-            formatted.insert(0, "<" + filtersToAttrs(pathParts[i]) + ">")
-        }
+    def citeIndex = citationIndices(xpt) 
+    def limitIndex = citeIndex[limit-1] //  
+    def pathMax = citeIndex[citeIndex.size() - 2]
+    for (i in pathMax .. limitIndex) {
+			formatted.insert(0,"<" + filtersToAttrs(pathParts[i]) + ">")
+    }
 	return formatted.toString()
     }
 
@@ -146,6 +188,7 @@ class XmlFormatter {
     */
     String closeAncestors (String ancestorPath) {
 	StringBuffer formatted = new StringBuffer()
+	//println "AP: ${ancestorPath}"
 
 	def pathParts = ancestorPath.split(/\//)
 	pathParts.reverse().each {
