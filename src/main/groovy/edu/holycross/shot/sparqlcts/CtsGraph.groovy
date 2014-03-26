@@ -619,22 +619,26 @@ class CtsGraph {
         def slurper = new groovy.json.JsonSlurper()
         def parsedReply = slurper.parseText(ctsReply)
         String currentWrapper = ""
+        String currentNext = ""
 		def citeDiffLevel = 0
         parsedReply.results.bindings.each { b ->
             if (b.anc) {
-                if (b.anc?.value != currentWrapper) {
-				    citeDiffLevel = formatter.levelDiff(b.anc?.value, currentWrapper, b.xpt?.value)
-                    if (currentWrapper == "") {
-					        reply.append(formatter.openAncestors(b.anc?.value))
-                    } else  {
-							reply.append(formatter.trimClose(b.anc?.value, b.xpt?.value,citeDiffLevel))
-							reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, citeDiffLevel))
+                if (b.nxt?.value != currentNext){
+                        currentNext = b.nxt?.value
+                        if (b.anc?.value != currentWrapper) {
+                            citeDiffLevel = formatter.levelDiff(b.anc?.value, currentWrapper, b.xpt?.value)
+                            if (currentWrapper == "") {
+                                    reply.append(formatter.openAncestors(b.anc?.value))
+                            } else  {
+                                    reply.append(formatter.trimClose(b.anc?.value, b.xpt?.value,citeDiffLevel))
+                                    reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, citeDiffLevel))
+                            }
+                            currentWrapper = b.anc?.value
+                        }
+                    if (b.txt) {
+                        reply.append(b.txt?.value)
                     }
-                    currentWrapper = b.anc?.value
                 }
-            }
-            if (b.txt) {
-                reply.append(b.txt?.value)
             }
         }
 	    reply.append(formatter.closeAncestors(currentWrapper))

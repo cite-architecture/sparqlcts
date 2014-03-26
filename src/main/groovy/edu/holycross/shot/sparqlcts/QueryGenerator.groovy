@@ -274,9 +274,10 @@ class QueryGenerator {
    return """
      ${CtsDefinitions.prefixPhrase}
 
-    SELECT ?u ?txt ?anc ?xpt WHERE {
+    SELECT ?u ?txt ?anc ?xpt ?nxt WHERE {
 		?u cts:belongsTo+ <${workUrnStr}> .
     	?u cts:hasSequence ?s .
+        ?u cts:next ?nxt .
     	?u cts:hasTextContent ?txt .
         ?u hmt:xpTemplate ?xpt .
         ?u hmt:xmlOpen ?anc  .
