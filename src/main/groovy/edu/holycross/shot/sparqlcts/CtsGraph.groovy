@@ -418,6 +418,7 @@ class CtsGraph {
             }
 
         }
+		println "So this works"
         return firstInt
     }
 
@@ -540,9 +541,12 @@ class CtsGraph {
 			Integer firstSequenceOfUrn = getFirstSequence(urn)
 			String firstSeqUrn = getUrnForSequence(firstSequenceOfUrn, urn.getUrnWithoutPassage())
 		    String prevLeafUrnStr= getPrevUrn(new CtsUrn(firstSeqUrn))	
-			CtsUrn prevLeafUrn = new CtsUrn(prevLeafUrnStr)
-			CtsUrn prevUrn = new CtsUrn("${prevLeafUrn.trimPassage(depthUrn)}")
-			replyString = prevUrn.asString
+			if (prevLeafUrnStr != ""){
+					CtsUrn prevLeafUrn = new CtsUrn(prevLeafUrnStr)
+					CtsUrn prevUrn = new CtsUrn("${prevLeafUrn.trimPassage(depthUrn)}")
+					replyString = prevUrn.asString
+			} else { replyString = "" }
+			
 				  	
 	    }	
         return replyString
@@ -583,14 +587,16 @@ class CtsGraph {
 			Integer lastSequenceOfUrn = getLastSequence(urn)
 			String lastSeqUrn = getUrnForSequence(lastSequenceOfUrn, urn.getUrnWithoutPassage())
 		    String nextLeafUrnStr= getNextUrn(new CtsUrn(lastSeqUrn))	
-			CtsUrn nextLeafUrn = new CtsUrn(nextLeafUrnStr)
-			CtsUrn nextUrn = new CtsUrn("${nextLeafUrn.trimPassage(depthUrn)}")
-			replyString = nextUrn.asString
-				  	
-	    }	
+			if (nextLeafUrnStr != ""){
+					CtsUrn nextLeafUrn = new CtsUrn(nextLeafUrnStr)
+					CtsUrn nextUrn = new CtsUrn("${nextLeafUrn.trimPassage(depthUrn)}")
+					replyString = nextUrn.asString
+			} else { replyString = "" }
+							
+		}	
 
-		return replyString
-    }
+				return replyString
+			}
 
 
 
