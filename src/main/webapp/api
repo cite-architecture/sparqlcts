@@ -44,7 +44,25 @@ if (req == "GetCapabilities") {
     try {
         CtsUrn urn = new CtsUrn(urnStr)
     } catch (Exception e) {
-        println "<error>${urnStr} is not a valid URN: ${e}</error>\n"
+		println """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
+		println """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
+		def errorNum
+		switch (e) {
+			case 'java.lang.Exception: Bad URN syntax: #BADSYNTAX#':
+				errorNum = 2
+				println """<message>BAD URN SYNTAX: ${urnStr}</message>\n"""
+				println """<code>${errorNum}</code>\n"""
+				break
+			case 'java.lang.Exception: Bad URN syntax: ##':
+				errorNum = 1
+				println """<message>INVALID REQUEST. Missing required parameter: 'urn'</message>\n"""
+				println """<code>${errorNum}</code>\n"""
+				break
+			default:
+				errorNum = 0
+				break
+		}
+		println """</CTSError>\n"""
         done = true
     }
 }
@@ -88,7 +106,11 @@ if (!done) {
         try {
            reply = ctsg.getGVRReply(urnStr, levelVal.toInteger())
         } catch (Exception e) {
-	  reply = "<error>Unable to get GVR reply for ${urnStr}. Exception ${e}.</error>"
+				reply = """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
+				reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
+				reply += """<message>Invalid URN reference: ${urnStr}</message>\n"""
+				reply += """<code>3</code>\n"""
+				reply += """</CTSError>\n"""
         }
         println reply
         break
