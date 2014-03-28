@@ -74,9 +74,10 @@ class QueryGenerator {
     String getVersionQuery(CtsUrn workLevelUrn) {
         return """
         ${CtsDefinitions.prefixPhrase}
-       SELECT   ?vers ?wk
+       SELECT   ?vers ?wk ?type
         WHERE {
         ?vers cts:belongsTo  <${workLevelUrn.getUrnWithoutPassage()}>  .
+		?vers rdf:type ?type .
 	    BIND (<${workLevelUrn.getUrnWithoutPassage()}> as ?wk)
         }
         """

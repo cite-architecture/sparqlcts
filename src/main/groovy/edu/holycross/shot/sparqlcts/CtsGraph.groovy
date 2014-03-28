@@ -232,12 +232,15 @@ class CtsGraph {
                 def versNode = r[sparql.binding].find {it.'@name' == 'vers'}
                 versNode.children().each {
                     String urnVal = it.text()
-                    try {
-                        CtsUrn workUrn = new CtsUrn(urnVal)
-                        vers = workUrn.getVersion(false)
-                    } catch (Exception e) {
-                        throw new Exception("CtsGraph:findVersion: bad urn value from triple store ${urnVal}, ${e}")
-                    }
+					// we only want the first valid one!
+					if (vers == null){
+							try {
+								CtsUrn workUrn = new CtsUrn(urnVal)
+								vers = workUrn.getVersion(false)
+							} catch (Exception e) {
+								throw new Exception("CtsGraph:findVersion: bad urn value from triple store ${urnVal}, ${e}")
+							}
+					}
                 }
             }
         }
@@ -418,7 +421,6 @@ class CtsGraph {
             }
 
         }
-		println "So this works"
         return firstInt
     }
 
@@ -753,11 +755,10 @@ class CtsGraph {
     String getValidReffForWork(CtsUrn workUrn, Integer level) {
         StringBuffer reply = new StringBuffer()
         CtsUrn urn = resolveVersion(workUrn)
-
+		System.err.println "-----------${workUrn.asString} >> ${urn.asString}"
         if (isLeafNode(urn)) {
             reply.append("<urn>${urn}</urn>")
         } else {
-            // 
             String ctsReply = getSparqlReply("application/json", qg.getWorkGVRQuery(urn, level))
             def slurper = new groovy.json.JsonSlurper()
             def parsedReply = slurper.parseText(ctsReply)
@@ -781,11 +782,15 @@ class CtsGraph {
         ctsReply = getSparqlReply("application/json", qg.getGVRNodeQuery(urn, level))
         def slurper = new groovy.json.JsonSlurper()
         def parsedReply = slurper.parseText(ctsReply)
-        parsedReply.results.bindings.each { b ->
-            if (b.ref) {
-                replyBuff.append("<urn>${b.ref?.value}</urn>\n")
-            }
-        }
+		if (parsedReply.results.bindings.size() < 2){
+			throw new Exception ("invalid urn")
+		} else { 
+				parsedReply.results.bindings.each { b ->
+					if (b.ref) {
+						replyBuff.append("<urn>${b.ref?.value}</urn>\n")
+					}
+				}
+		}
         return replyBuff.toString()
     }
 
@@ -1041,7 +1046,8 @@ class CtsGraph {
     */
     String getGVRReply(CtsUrn requestUrn, Integer level) {
         CtsUrn urn = resolveVersion(requestUrn)
-        StringBuffer replyBuff = new StringBuffer("<GetValidReff xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<range>${urn.isRange()}</range></request>\n")
+		
+        StringBuffer replyBuff = new StringBuffer("<GetValidReff xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<requestName>GetValidReff</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n</request>\n")
         replyBuff.append("<reply>\n<reff>\n")
 
         // 3 cases to consider:
@@ -1057,7 +1063,6 @@ class CtsGraph {
             // 3. single citation node (leaf or container)
             if (isLeafNode(requestUrn)) {
                 replyBuff.append("<urn>${requestUrn.toString()}</urn>\n")
-
             } else {
                 replyBuff.append(getValidReffForNode(urn, level))
             }
