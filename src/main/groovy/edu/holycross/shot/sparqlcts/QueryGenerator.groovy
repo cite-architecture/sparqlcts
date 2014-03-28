@@ -425,9 +425,15 @@ WHERE {
 ?u cts:belongsTo+ <${workUrn}> .
 ?u cts:containedBy* ?ref .
 ?u cts:hasSequence ?s .
+?ref cts:citationDepth ?d .
+{
+?ref cts:hasTextContent ?t .
+} UNION {
 ?ref cts:citationDepth ${level} .
-FILTER (?s > "${startCount}"^^xsd:integer) .    
-FILTER (?s < "${endCount}"^^xsd:integer) .
+}
+FILTER (?s >= "${startCount}"^^xsd:integer) .    
+FILTER (?s <= "${endCount}"^^xsd:integer) .
+FILTER (?d <= "${level}"^^xsd:integer) .
 }
 ORDER BY ?s
 """

@@ -798,50 +798,58 @@ class CtsGraph {
 
     String getValidReffForRange(CtsUrn urn, Integer level) {
         StringBuffer reply = new StringBuffer()
-        reply.append getValidReffForNode(new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}"), level)
+        //reply.append getValidReffForNode(new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}"), level)
 
         CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}")
         CtsUrn urn2 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeEnd()}")
-        Integer startAfterStr 
-        Integer endBeforeStr
-        
+
+			System.err.println "got here ${urn1.asString} ${urn2.asString}"
+        Integer startAtStr 
+        Integer endAtStr
+
         if (isLeafNode(urn1)) {
-            startAfterStr =  getSequence(urn1)
-            
+			System.err.println "urn1 is leaf"
+            startAtStr =  getSequence(urn1)
         } else {
-            startAfterStr = getLastSequence(urn1)
+            startAtStr = getFirstSequence(urn1)
         }
+		
         if (isLeafNode(urn2)) {
-            endBeforeStr = getSequence(urn2)
-            
+			System.err.println "urn2 is leaf"
+            endAtStr = getSequence(urn2)
         } else {
-            endBeforeStr = getFirstSequence(urn2)
+            endAtStr = getLastSequence(urn2)
         }
         // error check tehses...
-        Integer int1 = startAfterStr.toInteger()
-        Integer int2 = endBeforeStr.toInteger()
+        Integer int1 = startAtStr.toInteger()
+        Integer int2 = endAtStr.toInteger()
         reply.append(getFillVR(int1, int2, level, "${urn.getUrnWithoutPassage()}"))
 
-        reply.append getValidReffForNode(new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeEnd()}"), level)
+        //reply.append getValidReffForNode(new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeEnd()}"), level)
 
         return reply.toString()
     }
 
 
     /** Retrieves valid references filling a range. */
-    String getFillVR(Integer after, Integer before, Integer level, String workUrnStr) {
+    String getFillVR(Integer start, Integer end, Integer level, String workUrnStr) {
         StringBuffer reply = new StringBuffer()
 
-        String fillReply = getSparqlReply("application/json", qg.getFillGVRQuery(after, before, level, workUrnStr))
+        String fillReply = getSparqlReply("application/json", qg.getFillGVRQuery(start, end, level, workUrnStr))
         def slurper = new groovy.json.JsonSlurper()
         def parsedReply = slurper.parseText(fillReply)
-
-        parsedReply.results.bindings.each { b ->
-            if (b.ref) {
-                reply.append("<urn>${b.ref?.value}</urn>\n")
-            }
-        }
-        return reply.toString()
+			System.err.println "getFillVR ${start} ${end} ${level}"
+		if (parsedReply.results.bindings.size() < 2){
+			throw new Exception ("invalid urn")
+		} else { 
+				parsedReply.results.bindings.each { b ->
+					if (b.ref) {
+						reply.append("<urn>${b.ref?.value}</urn>\n")
+					}
+				    return reply.toString()
+				}
+		}
+			return reply.toString()
     }
 
 
@@ -1046,19 +1054,20 @@ class CtsGraph {
     */
     String getGVRReply(CtsUrn requestUrn, Integer level) {
         CtsUrn urn = resolveVersion(requestUrn)
-		
-        StringBuffer replyBuff = new StringBuffer("<GetValidReff xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<requestName>GetValidReff</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n</request>\n")
+			System.err.println "got here ${urn.asString} ${level}"
+        StringBuffer replyBuff = new StringBuffer("<GetValidReff xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<requestName>GetValidReff</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n<level>${level}</level>\n</request>\n")
         replyBuff.append("<reply>\n<reff>\n")
 
         // 3 cases to consider:
         if (urn.getPassageComponent() == null) {
+			System.err.println "null"
             // 1. no limiting passage reference:
             replyBuff.append(getValidReffForWork(urn, level))
 
         } else if (urn.isRange()) {
             // 2. range request
+			System.err.println "isRange"
             replyBuff.append(getValidReffForRange(urn, level))
-
         } else {
             // 3. single citation node (leaf or container)
             if (isLeafNode(requestUrn)) {
