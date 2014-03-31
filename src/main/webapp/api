@@ -103,21 +103,33 @@ if (!done) {
 	//            print '<?xml-stylesheet type="text/xsl" href="xslt/gvr.xsl"?>\n' 
         String levelVal = request.getParameter("level")
         String reply = ""
-        //Integer maxLevel = getLeafDepth(resolveVersion(new CtsUrn(urnStr)))
-		//System.err.println "Did it: ${maxLevel}"
+				
+	     
+
 		try {
 				assert levelVal.toInteger() > 0
+				
+						try {
+						   CtsUrn thisUrn = new CtsUrn(urnStr)
+						   Integer maxDepth = ctsg.getLeafDepth(thisUrn)
+						   if (maxDepth >= levelVal.toInteger()){
+								   reply = ctsg.getGVRReply(urnStr, levelVal.toInteger())
+						   } else {
+								reply = """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
+								reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
+								reply += """<message>Invalid value for level parameter: ${levelVal}. With urn ${urnStr} maximum level = ${maxDepth}.</message>\n"""
+								reply += """<code>4</code>\n"""
+								reply += """</CTSError>\n"""
+						   }
+						   
+						} catch (Exception e) {
+								reply = """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
+								reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
+								reply += """<message>Invalid URN reference: ${urnStr}</message>\n"""
+								reply += """<code>3</code>\n"""
+								reply += """</CTSError>\n"""
+						}
 
-				try {
-				   
-				   reply = ctsg.getGVRReply(urnStr, levelVal.toInteger())
-				} catch (Exception e) {
-						reply = """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
-						reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
-						reply += """<message>Invalid URN reference: ${urnStr}</message>\n"""
-						reply += """<code>3</code>\n"""
-						reply += """</CTSError>\n"""
-				}
 		} catch (Error d){
 				reply = """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
 				reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""

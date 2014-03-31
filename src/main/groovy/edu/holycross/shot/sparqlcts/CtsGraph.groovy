@@ -780,9 +780,12 @@ class CtsGraph {
         String ctsReply
 
         ctsReply = getSparqlReply("application/json", qg.getGVRNodeQuery(urn, level))
+		System.err.println ctsReply
         def slurper = new groovy.json.JsonSlurper()
         def parsedReply = slurper.parseText(ctsReply)
-		if (parsedReply.results.bindings.size() < 2){
+		if (parsedReply.results.bindings.size() < 1){
+			throw new Exception ("invalid urn")
+		} else if ((parsedReply.results.bindings.size() == 1) && (parsedReply.results.bindings[0].ref?.value.size() < 1)  ){
 			throw new Exception ("invalid urn")
 		} else { 
 				parsedReply.results.bindings.each { b ->
@@ -803,7 +806,7 @@ class CtsGraph {
         CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}")
         CtsUrn urn2 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeEnd()}")
 
-			System.err.println "got here ${urn1.asString} ${urn2.asString}"
+			System.err.println "gvr for range got here ${urn1.asString} ${urn2.asString}"
         Integer startAtStr 
         Integer endAtStr
 
@@ -1069,10 +1072,13 @@ class CtsGraph {
 			System.err.println "isRange"
             replyBuff.append(getValidReffForRange(urn, level))
         } else {
+			System.err.println "got here (else)"
             // 3. single citation node (leaf or container)
             if (isLeafNode(requestUrn)) {
+				System.err.println "has passage; not range; is leaf"
                 replyBuff.append("<urn>${requestUrn.toString()}</urn>\n")
             } else {
+				System.err.println "has passage; not range; not leaf"
                 replyBuff.append(getValidReffForNode(urn, level))
             }
         }
