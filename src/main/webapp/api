@@ -82,21 +82,37 @@ if (!done) {
     switch(req) {
         case "GetDescription":
 	//println '<?xml-stylesheet type="text/xsl" href="xslt/gd.xsl"?>\n' + ctsg.getDescrReply(urnStr)
-	println ctsg.getDescrReply(urnStr)
+			try {
+					println ctsg.getDescrReply(urnStr)
+			} catch (Exception e){
+					println """<CTSError>GetDescription error ${urnStr}</CTSError>\n"""
+			}
             break
         case "GetPassagePlus":
 	//            println '<?xml-stylesheet type="text/xsl" href="xslt/gp.xsl"?>\n' + ctsg.getPassagePlusReply(urnStr, context)
-            println ctsg.getPassagePlusReply(urnStr, context)
+			try {
+					println ctsg.getPassagePlusReply(urnStr, context)
+			} catch (Exception e){
+					println """<CTSError>GetPassagePlus error ${urnStr}</CTSError>\n"""
+			}
         break
 
         case "GetPassage":
 	//           println '<?xml-stylesheet type="text/xsl" href="xslt/gp.xsl"?>\n' + ctsg.getPassageReply(urnStr, context)
-           println ctsg.getPassageReply(urnStr, context)
+			try {
+				   println ctsg.getPassageReply(urnStr, context)
+			} catch (Exception e){
+					println """<CTSError>GetPassage error ${urnStr}</CTSError>\n"""
+			}
         break
 
         case "GetPrevNextUrn":
 	//            println '<?xml-stylesheet type="text/xsl" href="xslt/gpn.xsl"?>\n' + ctsg.getPrevNextReply(urnStr)
-            println ctsg.getPrevNextReply(urnStr)
+			try {
+					println ctsg.getPrevNextReply(urnStr)
+			} catch (Exception e){
+					println """<CTSError>GetPrevNextReply error ${urnStr}</CTSError>\n"""
+			}
         break
 
         case "GetValidReff":

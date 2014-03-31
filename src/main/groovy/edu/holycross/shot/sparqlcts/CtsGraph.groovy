@@ -281,27 +281,27 @@ class CtsGraph {
     */
     CtsUrn resolveVersion(CtsUrn urn) 
     throws Exception {
-        if (urn.getVersion(false) != null) {
-            // already has a version component
-            return urn
-        } else {
-            String version = findVersion(urn)
-            if (version) {
-                String resolvedStr 
-                if (urn.getPassageComponent() != null) {
-                    resolvedStr  =  "${urn.getUrnWithoutPassage()}.${version}:${urn.getPassageComponent()}"
-                } else {
-   resolvedStr  =  "${urn.getUrnWithoutPassage()}.${version}"
-                }
-                try {
-                    return (new CtsUrn(resolvedStr))
-                } catch (Exception e) {
-                    throw e
-                }
-            } else {
-                throw new Exception("CtsGraph: resolveVersion: no version found for urn ${urn}")
-            }
-        }
+				if (urn.getVersion(false) != null) {
+					// already has a version component
+					return urn
+				} else {
+					String version = findVersion(urn)
+					if (version) {
+						String resolvedStr 
+						if (urn.getPassageComponent() != null) {
+							resolvedStr  =  "${urn.getUrnWithoutPassage()}.${version}:${urn.getPassageComponent()}"
+						} else {
+						   resolvedStr  =  "${urn.getUrnWithoutPassage()}.${version}"
+						}
+						try {
+							return (new CtsUrn(resolvedStr))
+						} catch (Exception e) {
+							throw e
+						}
+					} else {
+						throw new Exception("CtsGraph: resolveVersion: no version found for urn ${urn}")
+					}
+				}
     }
 
 
@@ -755,7 +755,6 @@ class CtsGraph {
     String getValidReffForWork(CtsUrn workUrn, Integer level) {
         StringBuffer reply = new StringBuffer()
         CtsUrn urn = resolveVersion(workUrn)
-		System.err.println "-----------${workUrn.asString} >> ${urn.asString}"
         if (isLeafNode(urn)) {
             reply.append("<urn>${urn}</urn>")
         } else {
@@ -780,7 +779,6 @@ class CtsGraph {
         String ctsReply
 
         ctsReply = getSparqlReply("application/json", qg.getGVRNodeQuery(urn, level))
-		System.err.println ctsReply
         def slurper = new groovy.json.JsonSlurper()
         def parsedReply = slurper.parseText(ctsReply)
 		if (parsedReply.results.bindings.size() < 1){
@@ -806,19 +804,16 @@ class CtsGraph {
         CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}")
         CtsUrn urn2 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeEnd()}")
 
-			System.err.println "gvr for range got here ${urn1.asString} ${urn2.asString}"
         Integer startAtStr 
         Integer endAtStr
 
         if (isLeafNode(urn1)) {
-			System.err.println "urn1 is leaf"
             startAtStr =  getSequence(urn1)
         } else {
             startAtStr = getFirstSequence(urn1)
         }
 		
         if (isLeafNode(urn2)) {
-			System.err.println "urn2 is leaf"
             endAtStr = getSequence(urn2)
         } else {
             endAtStr = getLastSequence(urn2)
@@ -841,7 +836,6 @@ class CtsGraph {
         String fillReply = getSparqlReply("application/json", qg.getFillGVRQuery(start, end, level, workUrnStr))
         def slurper = new groovy.json.JsonSlurper()
         def parsedReply = slurper.parseText(fillReply)
-			System.err.println "getFillVR ${start} ${end} ${level}"
 		if (parsedReply.results.bindings.size() < 2){
 			throw new Exception ("invalid urn")
 		} else { 
@@ -915,18 +909,18 @@ class CtsGraph {
             return getPrevNextReply(urn)
         } catch (Exception e) {
             throw new Exception("CtsGraph:getPrevNextReply: ${e}")
-        }
+		}
     }
 
     String getPrevNextReply(CtsUrn requestUrn) {
         boolean isLeaf = isLeafNode(requestUrn)
-        CtsUrn urn = resolveVersion(requestUrn)
-        StringBuffer replyBuff = new StringBuffer("<GetPrevNextUrn xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<leafnode>${isLeaf}</leafnode><range>${urn.isRange()}</range></request>\n<reply>\n<prevnext>\n")
-        replyBuff.append("<prev><urn>${getPrevUrn(urn)}</urn></prev>")
-        replyBuff.append("<next><urn>${getNextUrn(urn)}</urn></next>")
-        replyBuff.append("</prevnext>\n</reply></GetPrevNextUrn>")
-        
-        return  replyBuff.toString()
+		CtsUrn urn = resolveVersion(requestUrn)
+		StringBuffer replyBuff = new StringBuffer("<GetPrevNextUrn xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<leafnode>${isLeaf}</leafnode><range>${urn.isRange()}</range></request>\n<reply>\n<prevnext>\n")
+		replyBuff.append("<prev><urn>${getPrevUrn(urn)}</urn></prev>")
+		replyBuff.append("<next><urn>${getNextUrn(urn)}</urn></next>")
+		replyBuff.append("</prevnext>\n</reply></GetPrevNextUrn>")
+		
+		return  replyBuff.toString()
     }
 
 
@@ -1057,28 +1051,22 @@ class CtsGraph {
     */
     String getGVRReply(CtsUrn requestUrn, Integer level) {
         CtsUrn urn = resolveVersion(requestUrn)
-			System.err.println "got here ${urn.asString} ${level}"
         StringBuffer replyBuff = new StringBuffer("<GetValidReff xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<requestName>GetValidReff</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n<level>${level}</level>\n</request>\n")
         replyBuff.append("<reply>\n<reff>\n")
 
         // 3 cases to consider:
         if (urn.getPassageComponent() == null) {
-			System.err.println "null"
             // 1. no limiting passage reference:
             replyBuff.append(getValidReffForWork(urn, level))
 
         } else if (urn.isRange()) {
             // 2. range request
-			System.err.println "isRange"
             replyBuff.append(getValidReffForRange(urn, level))
         } else {
-			System.err.println "got here (else)"
             // 3. single citation node (leaf or container)
             if (isLeafNode(requestUrn)) {
-				System.err.println "has passage; not range; is leaf"
                 replyBuff.append("<urn>${requestUrn.toString()}</urn>\n")
             } else {
-				System.err.println "has passage; not range; not leaf"
                 replyBuff.append(getValidReffForNode(urn, level))
             }
         }
