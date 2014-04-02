@@ -37,26 +37,26 @@ class XmlFormatter {
 		String temp2 = ""
 		Integer counter
 		def retVal = 0
-		if (pathParts1.size() != pathParts2.size()){
-			return -1;
-	    } else {
-			def citeIndex = citationIndices(xp)
-			Integer howMany = citeIndex.size()
-			Integer lastIndex = citeIndex[howMany - 1].toInteger()
-			Integer firstIndex = citeIndex[0].toInteger()
-			lastIndex--
-			firstIndex--
-			counter = 0
-				for (i in firstIndex .. lastIndex){
-					if (pathParts1[i] != pathParts2[i]){
-						retVal = counter
-						break
-					}
-				    counter++
-				}
-				if (counter > lastIndex){ retVal = 0 }
-		}
-		return retVal
+        if (pathParts1.size() != pathParts2.size()){
+                retVal =  -1;
+        } else {
+                def citeIndex = citationIndices(xp)
+                Integer howMany = citeIndex.size()
+                Integer lastIndex = citeIndex[howMany - 1].toInteger()
+                Integer firstIndex = citeIndex[0].toInteger()
+                lastIndex--
+                firstIndex--
+                counter = 0
+                for (i in firstIndex .. lastIndex){
+                        if (pathParts1[i] != pathParts2[i]){
+                                retVal = counter
+                                        break
+                        }
+                        counter++
+                }
+                if (counter > lastIndex){ retVal = 0 }
+        }
+        return retVal
 	}
 
 
@@ -121,8 +121,16 @@ class XmlFormatter {
         def templateParts = citationTemplate.split(/\//)
         def citationIndexes = []
         def max = templateParts.size() - 1
+        // cwb: Perhaps we only skip the initial run of parts-without-citation values?
+        //      That is, skip over the TEI/text/body/ part, but once you have _any_ citation-element,
+        //      Grab all the rest. This seems to work better.
+        def startCounting = false
         for (i in 1..max) {
+
             if (templateParts[i] =~ /\?/) {
+                startCounting = true
+            }
+            if (startCounting){ 
                 citationIndexes.add(i)
             }
         }

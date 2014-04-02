@@ -276,8 +276,8 @@ class QueryGenerator {
      ${CtsDefinitions.prefixPhrase}
 
     SELECT ?u ?txt ?anc ?xpt ?nxt WHERE {
-		?u cts:belongsTo+ <${workUrnStr}> .
     	?u cts:hasSequence ?s .
+		?u cts:belongsTo+ <${workUrnStr}> .
         ?u cts:next ?nxt .
     	?u cts:hasTextContent ?txt .
         ?u hmt:xpTemplate ?xpt .
@@ -367,11 +367,19 @@ WHERE  {
 String getLeafDepthForWorkQuery(CtsUrn urn) {
 return """
 ${CtsDefinitions.prefixPhrase}
-SELECT (MAX(?d) AS ?deepest)
-WHERE {
-?c cts:belongsTo+ <${urn}> .
-?leaf cts:containedBy* ?c .
-?leaf cts:citationDepth ?d .
+
+SELECT (MAX(?d) AS ?deepest) WHERE { 
+{
+        ?old cts:belongsTo <urn:cts:greekLit:tlg0527.tlg001.fu01> .
+        ?old cts:citationDepth ?d .
+}
+UNION 
+{
+        ?old cts:belongsTo <urn:cts:greekLit:tlg0527.tlg001.fu01t> .
+        ?c cts:containedBy+  ?old .
+        ?leaf cts:containedBy* ?c . 
+        ?leaf cts:citationDepth ?d . 
+}
 }
 """
 }
