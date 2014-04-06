@@ -370,12 +370,12 @@ ${CtsDefinitions.prefixPhrase}
 
 SELECT (MAX(?d) AS ?deepest) WHERE { 
 {
-        ?old cts:belongsTo <urn:cts:greekLit:tlg0527.tlg001.fu01> .
+        ?old cts:belongsTo <${urn.asString}> .
         ?old cts:citationDepth ?d .
 }
 UNION 
 {
-        ?old cts:belongsTo <urn:cts:greekLit:tlg0527.tlg001.fu01t> .
+        ?old cts:belongsTo <${urn.asString}> .
         ?c cts:containedBy+  ?old .
         ?leaf cts:containedBy* ?c . 
         ?leaf cts:citationDepth ?d . 
