@@ -96,7 +96,18 @@ if (!done) {
 
         case "GetPrevNextUrn":
 	//            println '<?xml-stylesheet type="text/xsl" href="xslt/gpn.xsl"?>\n' + ctsg.getPrevNextReply(urnStr)
-					println ctsg.getPrevNextReply(urnStr)
+		reply = ""
+		try {
+					reply = ctsg.getPrevNextReply(urnStr)
+		} catch (Exception e) {
+				reply = """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
+				reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
+				reply += """<message>Invalid URN reference: ${urnStr}</message>\n"""
+				reply += """<code>3</code>\n"""
+				reply += """</CTSError>\n"""
+				
+		}
+		println reply
         break
 
         case "GetValidReff":

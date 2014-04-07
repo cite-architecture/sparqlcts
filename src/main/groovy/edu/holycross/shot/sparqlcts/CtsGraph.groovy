@@ -908,20 +908,45 @@ class CtsGraph {
             CtsUrn urn = new CtsUrn(urnStr)
             return getPrevNextReply(urn)
         } catch (Exception e) {
-            throw new Exception("CtsGraph:getPrevNextReply: ${e}")
+					throw new Exception("CtsGraph:getPrevNextUrnReply: ${e}")
 		}
     }
 
-    String getPrevNextReply(CtsUrn requestUrn) {
-        boolean isLeaf = isLeafNode(requestUrn)
-		CtsUrn urn = resolveVersion(requestUrn)
-		StringBuffer replyBuff = new StringBuffer("<GetPrevNextUrn xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<leafnode>${isLeaf}</leafnode><range>${urn.isRange()}</range></request>\n<reply>\n<prevnext>\n")
-		replyBuff.append("<prev><urn>${getPrevUrn(urn)}</urn></prev>")
-		replyBuff.append("<next><urn>${getNextUrn(urn)}</urn></next>")
-		replyBuff.append("</prevnext>\n</reply></GetPrevNextUrn>")
-		
-		return  replyBuff.toString()
-    }
+    String getPrevNextReply(CtsUrn requestUrn) 
+			throws Exception {
+				try {
+				
+				CtsUrn urn = resolveVersion(requestUrn)
+				// Check for valid range, first
+				if (urn.isRange()){
+						CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}")
+						CtsUrn urn2 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeEnd()}")
+						Integer startAtStr 
+						Integer endAtStr
+						if (isLeafNode(urn1)) {
+							startAtStr =  getSequence(urn1)
+						} else {
+							startAtStr = getFirstSequence(urn1)
+						}
+						
+						if (isLeafNode(urn2)) {
+							endAtStr = getSequence(urn2)
+						} else {
+							endAtStr = getLastSequence(urn2)
+						}
+						if (endAtStr < startAtStr){ throw new Exception("CtsGraph:getPrevNextUrnReply: invalid range.") }
+				}
+
+				StringBuffer replyBuff = new StringBuffer("<GetPrevNextUrn xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<requestName>GetPrevNextUrn</requestName>\n<requestUrn>${requestUrn.asString}</requestUrn>\n</request>\n<reply>\n<prevnext>\n")
+				replyBuff.append("<prev><urn>${getPrevUrn(urn)}</urn></prev>")
+				replyBuff.append("<next><urn>${getNextUrn(urn)}</urn></next>")
+				replyBuff.append("</prevnext>\n</reply></GetPrevNextUrn>")
+				
+				return  replyBuff.toString()
+				} catch (Exception e){
+					throw new Exception("CtsGraph:getPrevNextUrnReply: ${e}")
+				}
+			}
 
 
     /**
