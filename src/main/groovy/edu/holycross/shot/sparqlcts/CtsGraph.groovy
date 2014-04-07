@@ -621,14 +621,22 @@ class CtsGraph {
     * if the text contents are in XML and include more than one citable node,
     * this reply will not be a well-formed fragment.
     */
-    String getFillText(Integer startInt, Integer endInt, String workUrnStr) {
+    String getFillText(Integer startInt, Integer endInt, String workUrnStr) 
+    throws Exception {
+        try {
         StringBuffer reply = new StringBuffer()
         String ctsReply =  getSparqlReply("application/json", qg.getFillQuery(startInt, endInt, workUrnStr))
         def slurper = new groovy.json.JsonSlurper()
         def parsedReply = slurper.parseText(ctsReply)
         String currentWrapper = ""
+        // We need to grab this, because when texts have different sections with different depths,
+        // we can't count on the Next section having the same structure as the previous one.
+        String currentXpt = "" 
         String currentNext = ""
 		def citeDiffLevel = 0
+        if (parsedReply.results.bindings.size() < 1){ 
+            throw new Exception("CtsGraph: getFillText. No results")
+        }
         parsedReply.results.bindings.each { b ->
             if (b.anc) {
                 if (b.nxt?.value != currentNext){
@@ -638,10 +646,17 @@ class CtsGraph {
                             if (currentWrapper == "") {
                                     reply.append(formatter.openAncestors(b.anc?.value))
                             } else  {
+                                    if (citeDiffLevel < 0){
+                                    reply.append(formatter.trimClose(b.anc?.value, currentXpt,1))
+                                    reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, 1))
+                                    } else {
+                                    // We might need to change 'b.xpt?.value' in the line below to 'currentXpt'
                                     reply.append(formatter.trimClose(b.anc?.value, b.xpt?.value,citeDiffLevel))
                                     reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, citeDiffLevel))
+                                    }
                             }
                             currentWrapper = b.anc?.value
+                            currentXpt = b.xpt?.value
                         }
                     if (b.txt) {
                         reply.append(b.txt?.value)
@@ -652,11 +667,17 @@ class CtsGraph {
 	    reply.append(formatter.closeAncestors(currentWrapper))
 		
         return reply.toString()
+        } catch (Exception e){
+            throw new Exception("CtsGraph Exception: GetFillText ")
+        }
 
     }
 
 
-    String getRangeText(CtsUrn urn) {
+    String getRangeText(CtsUrn urn) 
+    throws Exception {
+        try {
+
         StringBuffer reply = new StringBuffer()
 
         CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}")
@@ -678,7 +699,12 @@ class CtsGraph {
 
 	    reply.append(getFillText(startAtStr.toInteger(), endAtStr.toInteger(), "${urn.getUrnWithoutPassage()}"))
 
+
+
         return reply.toString()
+        } catch (Exception e){
+            throw new Exception("CtsGraphException: getRangeText")
+        }
     }
 
 
@@ -703,7 +729,9 @@ class CtsGraph {
         return  getNodeText(requestUrn, context, true, true)
     }
 
-    String getNodeText(CtsUrn requestUrn, Integer context, boolean openXml, boolean closeXml) {
+    String getNodeText(CtsUrn requestUrn, Integer context, boolean openXml, boolean closeXml) 
+    throws Exception {
+        try {
         StringBuffer reply = new StringBuffer()
         String ctsReply
         CtsUrn urn = resolveVersion(requestUrn)
@@ -717,6 +745,9 @@ class CtsGraph {
         def parsedReply = slurper.parseText(ctsReply)
         def currentWrapper = ""
 		def citeDiffLevel = 0
+        if (parsedReply.results.bindings.size() < 1){
+            throw new Exception ("CtsGraph: GetNodeText: No results")
+        }
         parsedReply.results.bindings.eachWithIndex { b, i ->
             if (b.anc) {
                 if (b.anc?.value != currentWrapper) {
@@ -740,6 +771,9 @@ class CtsGraph {
             reply.append(formatter.closeAncestors(currentWrapper))
         }
         return reply.toString()
+        } catch (Exception e){
+            throw new Exception("CtsGraph: GetNodeText: ${e}")
+        }
     }
 
 
@@ -961,7 +995,6 @@ class CtsGraph {
         }
     }
 
-
     /**
     * Composes a String validating against the .rng schema for the GetPassage reply.
     * @param requestUrn URN of passage to retrieve.
@@ -969,23 +1002,29 @@ class CtsGraph {
     * in the reply.
     * @returns A valid reply to the CTS GetPassage request.
     */
-    String getPassageReply(CtsUrn requestUrn, Integer context) {
-        boolean isLeaf = isLeafNode(requestUrn)
-        CtsUrn urn = resolveVersion(requestUrn)
-        String nsDecls = getMetadataAttrs(urn)
-        StringBuffer psgText = new StringBuffer()
-        if (urn.isRange()) {
-            psgText.append(getRangeText(urn))
-        } else {
-            psgText.append(getNodeText(urn, context))
-        }
-        StringBuffer replyBuff = new StringBuffer("<GetPassage xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<leafnode>${isLeaf}</leafnode><range>${urn.isRange()}</range><context>${context}</context></request>\n")
-        replyBuff.append("<reply><urn>${urn}</urn><passage ${nsDecls}>${psgText.toString()}</passage>")
-        replyBuff.append("</reply></GetPassage>")
-        
-        return  replyBuff.toString()
-    }
+    String getPassageReply(CtsUrn requestUrn, Integer context) 
+    throws Exception {
+        try {
 
+                boolean isLeaf = isLeafNode(requestUrn)
+                CtsUrn urn = resolveVersion(requestUrn)
+                String nsDecls = getMetadataAttrs(urn)
+                StringBuffer psgText = new StringBuffer()
+                if (urn.isRange()) {
+                    psgText.append(getRangeText(urn))
+                } else {
+                    psgText.append(getNodeText(urn, context))
+                }
+
+                StringBuffer replyBuff = new StringBuffer("<GetPassage xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<requestName>GetPassage</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n<requestContext>${context}</requestContext></request>\n")
+                replyBuff.append("<reply><urn>${urn}</urn><passage ${nsDecls}>${psgText.toString()}</passage>")
+                replyBuff.append("</reply></GetPassage>")
+                        
+                        return  replyBuff.toString()
+    } catch (Exception e){
+        throw new Exception("CtsGraph: getPassageReply ${e}")
+    }
+}
 
 
     String getPassagePlusReply(String urnStr, Integer context) 
@@ -1006,7 +1045,7 @@ class CtsGraph {
         boolean isLeaf = isLeafNode(requestUrn)
         CtsUrn urn = resolveVersion(requestUrn)
         String nsDecls = getMetadataAttrs(urn)
-        StringBuffer replyBuff = new StringBuffer("<GetPassagePlus xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n<leafnode>${isLeaf}</leafnode><range>${urn.isRange()}</range><context>${context}</context></request>\n")
+        StringBuffer replyBuff = new StringBuffer("<GetPassagePlus xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<requestName>GetPassagePlus</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n<requestContext>${context}</requestContext></request>\n")
 
         StringBuffer psgText = new StringBuffer()
         if (urn.isRange()) {
