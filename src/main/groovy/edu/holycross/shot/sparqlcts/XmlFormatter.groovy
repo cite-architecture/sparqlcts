@@ -60,7 +60,7 @@ class XmlFormatter {
                 }
                 return retVal
         } catch (Exception e){
-            throw new Exception("XmlFormatter Exception: levelDiff ${e}"
+            throw new Exception("XmlFormatter Exception: levelDiff ${e}")
         }
 	}
 
