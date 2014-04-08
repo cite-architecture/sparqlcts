@@ -30,33 +30,38 @@ class XmlFormatter {
 	* @param xp The XPath template
 	* @returns An integer, -1 for error, 0 for perfect match, otherwise indicating the level of the shallowest point of difference
 	*/
-    Integer levelDiff ( String anc1, String anc2, String xp){
-		def pathParts1 = anc1.split(/\//)
-		def pathParts2 = anc2.split(/\//)
-		String temp1 = ""
-		String temp2 = ""
-		Integer counter
-		def retVal = 0
-        if (pathParts1.size() != pathParts2.size()){
-                retVal =  -1;
-        } else {
-                def citeIndex = citationIndices(xp)
-                Integer howMany = citeIndex.size()
-                Integer lastIndex = citeIndex[howMany - 1].toInteger()
-                Integer firstIndex = citeIndex[0].toInteger()
-                lastIndex--
-                firstIndex--
-                counter = 0
-                for (i in firstIndex .. lastIndex){
-                        if (pathParts1[i] != pathParts2[i]){
-                                retVal = counter
-                                        break
+    Integer levelDiff ( String anc1, String anc2, String xp)
+    throws Exception {
+        try {
+                def pathParts1 = anc1.split(/\//)
+                def pathParts2 = anc2.split(/\//)
+                String temp1 = ""
+                String temp2 = ""
+                Integer counter
+                def retVal = 0
+                if (pathParts1.size() != pathParts2.size()){
+                        retVal =  -1;
+                } else {
+                        def citeIndex = citationIndices(xp)
+                        Integer howMany = citeIndex.size()
+                        Integer lastIndex = citeIndex[howMany - 1].toInteger()
+                        Integer firstIndex = citeIndex[0].toInteger()
+                        lastIndex--
+                        firstIndex--
+                        counter = 0
+                        for (i in firstIndex .. lastIndex){
+                                if (pathParts1[i] != pathParts2[i]){
+                                        retVal = counter
+                                                break
+                                }
+                                counter++
                         }
-                        counter++
+                        if (counter > lastIndex){ retVal = 0 }
                 }
-                if (counter > lastIndex){ retVal = 0 }
+                return retVal
+        } catch (Exception e){
+            throw new Exception("XmlFormatter Exception: levelDiff ${e}")
         }
-        return retVal
 	}
 
 
