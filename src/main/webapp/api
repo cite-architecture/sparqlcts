@@ -44,10 +44,9 @@ if (req == "GetCapabilities") {
     try {
         CtsUrn urn = new CtsUrn(urnStr)
     } catch (Exception e) {
-		println """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
-		println """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
-		def errorNum
-		switch (e) {
+      println """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
+      def errorNum
+      switch (e) {
 			case 'java.lang.Exception: Bad URN syntax: #BADSYNTAX#':
 				errorNum = 2
 				println """<message>BAD URN SYNTAX: ${urnStr}</message>\n"""
@@ -114,7 +113,6 @@ if (!done) {
 						   if (maxDepth >= levelVal.toInteger()){
 								   reply = ctsg.getGVRReply(urnStr, levelVal.toInteger())
 						   } else {
-								reply = """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
 								reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
 								reply += """<message>Invalid value for level parameter: ${levelVal}. With urn ${urnStr} maximum level = ${maxDepth}.</message>\n"""
 								reply += """<code>4</code>\n"""
@@ -122,7 +120,6 @@ if (!done) {
 						   }
 						   
 						} catch (Exception e) {
-								reply = """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
 								reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
 								reply += """<message>Invalid URN reference: ${urnStr}</message>\n"""
 								reply += """<code>3</code>\n"""
@@ -130,7 +127,6 @@ if (!done) {
 						}
 
 		} catch (Error d){
-				reply = """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
 				reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
 				reply += """<message>Invalid value for level parameter: ${levelVal}: must be &gt; 0</message>\n"""
 				reply += """<code>4</code>\n"""
