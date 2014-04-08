@@ -4,5 +4,5 @@
 
 project.ext {
     tripleserver = "http://localhost:3030/ds/"
-    inventoryDir = "/cite/svc-validator/src/main/webapp/testdata/"
+    inventoryDir = "testinvs"
 }
