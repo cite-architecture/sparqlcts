@@ -21,7 +21,7 @@ String getCapsReply() {
         // temporary kludge:  strip XML PIs, and hope they're isolated on
         // a single line ...
         String capsText = invFile.getText("UTF-8").replaceAll(/<[?].+[?]>/, '')
-        return "<GetCapabilities xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<request></request>\n<reply>\n${capsText}\n</reply>\n</GetCapabilities>"
+        return "<GetCapabilities xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<cts:request></cts:request>\n<cts:reply>\n${capsText}\n</cts:reply>\n</GetCapabilities>"
 
 	//return "<debug>FILE ${invFile} had text of length ${capsText.size()}</debug>"
 
