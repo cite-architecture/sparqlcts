@@ -905,10 +905,10 @@ class CtsGraph {
     String getDescrReply(CtsUrn requestUrn) {
         CtsUrn urn = resolveVersion(requestUrn)
         
-        StringBuffer replyBuff = new StringBuffer("<GetDescription xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n</request>\n")
-        replyBuff.append("<reply>\n")
+        StringBuffer replyBuff = new StringBuffer("<GetDescription xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<cts:request>\n<urn>${urn}</urn>\n<version>${urn.getVersion()}</version>\n</cts:request>\n")
+        replyBuff.append("<cts:reply>\n")
         replyBuff.append(getDescription(urn))
-        replyBuff.append("</reply>\n</GetDescription>\n")
+        replyBuff.append("</cts:reply>\n</GetDescription>\n")
         return replyBuff.toString()
     }
 
@@ -971,10 +971,10 @@ class CtsGraph {
 						if (endAtStr < startAtStr){ throw new Exception("CtsGraph:getPrevNextUrnReply: invalid range.") }
 				}
 
-				StringBuffer replyBuff = new StringBuffer("<GetPrevNextUrn xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<requestName>GetPrevNextUrn</requestName>\n<requestUrn>${requestUrn.asString}</requestUrn>\n</request>\n<reply>\n<prevnext>\n")
+				StringBuffer replyBuff = new StringBuffer("<GetPrevNextUrn xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<cts:request>\n<requestName>GetPrevNextUrn</requestName>\n<requestUrn>${requestUrn.asString}</requestUrn>\n</cts:request>\n<cts:reply>\n<prevnext>\n")
 				replyBuff.append("<prev><urn>${getPrevUrn(urn)}</urn></prev>")
 				replyBuff.append("<next><urn>${getNextUrn(urn)}</urn></next>")
-				replyBuff.append("</prevnext>\n</reply></GetPrevNextUrn>")
+				replyBuff.append("</prevnext>\n</cts:reply></GetPrevNextUrn>")
 				
 				return  replyBuff.toString()
 				} catch (Exception e){
@@ -1016,9 +1016,9 @@ class CtsGraph {
                     psgText.append(getNodeText(urn, context))
                 }
 
-                StringBuffer replyBuff = new StringBuffer("<GetPassage xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<requestName>GetPassage</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n<requestContext>${context}</requestContext></request>\n")
-                replyBuff.append("<reply><urn>${urn}</urn><passage ${nsDecls}>${psgText.toString()}</passage>")
-                replyBuff.append("</reply></GetPassage>")
+                StringBuffer replyBuff = new StringBuffer("<GetPassage xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<cts:request>\n<requestName>GetPassage</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n<requestContext>${context}</requestContext></cts:request>\n")
+                replyBuff.append("<cts:reply><urn>${urn}</urn><passage ${nsDecls}>${psgText.toString()}</passage>")
+                replyBuff.append("</cts:reply></GetPassage>")
                         
                         return  replyBuff.toString()
     } catch (Exception e){
@@ -1045,7 +1045,7 @@ class CtsGraph {
         boolean isLeaf = isLeafNode(requestUrn)
         CtsUrn urn = resolveVersion(requestUrn)
         String nsDecls = getMetadataAttrs(urn)
-        StringBuffer replyBuff = new StringBuffer("<GetPassagePlus xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<requestName>GetPassagePlus</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n<requestContext>${context}</requestContext></request>\n")
+        StringBuffer replyBuff = new StringBuffer("<GetPassagePlus xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<cts:request>\n<requestName>GetPassagePlus</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n<requestContext>${context}</requestContext></cts:request>\n")
 
         StringBuffer psgText = new StringBuffer()
         if (urn.isRange()) {
@@ -1054,13 +1054,13 @@ class CtsGraph {
             psgText.append(getNodeText(urn, context))
         }
 
-        replyBuff.append("<reply><urn>${urn}</urn>${getDescription(urn)}<passage ${nsDecls}>${psgText.toString()}</passage>\n")
+        replyBuff.append("<cts:reply><urn>${urn}</urn>${getDescription(urn)}<passage ${nsDecls}>${psgText.toString()}</passage>\n")
         replyBuff.append("<prevnext>\n")
         replyBuff.append("<prev><urn>${getPrevUrn(urn)}</urn></prev>")
         replyBuff.append("<next><urn>${getNextUrn(urn)}</urn></next>")
         replyBuff.append("</prevnext>\n")
 
-        replyBuff.append("</reply></GetPassagePlus>")
+        replyBuff.append("</cts:reply></GetPassagePlus>")
 
         return  replyBuff.toString()
     }
@@ -1115,8 +1115,8 @@ class CtsGraph {
     */
     String getGVRReply(CtsUrn requestUrn, Integer level) {
         CtsUrn urn = resolveVersion(requestUrn)
-        StringBuffer replyBuff = new StringBuffer("<GetValidReff xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<request>\n<requestName>GetValidReff</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n<level>${level}</level>\n</request>\n")
-        replyBuff.append("<reply>\n<reff>\n")
+        StringBuffer replyBuff = new StringBuffer("<GetValidReff xmlns='http://chs.harvard.edu/xmlns/cts' xmlns:cts='http://chs.harvard.edu/xmlns/cts'>\n<cts:request>\n<requestName>GetValidReff</requestName>\n<requestUrn>${requestUrn}</requestUrn>\n<level>${level}</level>\n</cts:request>\n")
+        replyBuff.append("<cts:reply>\n<reff>\n")
 
         // 3 cases to consider:
         if (urn.getPassageComponent() == null) {
@@ -1135,7 +1135,7 @@ class CtsGraph {
             }
         }
 
-        replyBuff.append("</reff>\n</reply>\n</GetValidReff>")
+        replyBuff.append("</reff>\n</cts:reply>\n</GetValidReff>")
         return  replyBuff.toString()
     }
 
