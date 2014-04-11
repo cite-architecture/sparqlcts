@@ -915,7 +915,7 @@ class CtsGraph {
     
     /* maybe switch on level and call distint descr queries from qg */
     String getDescription(CtsUrn requestUrn) {
-        StringBuffer reply = new StringBuffer("<description>\n")
+        StringBuffer reply = new StringBuffer("<label>\n")
         String ctsReply
         CtsUrn urn = resolveVersion(requestUrn)
         ctsReply = getSparqlReply("application/json", qg.getDescrQuery(urn))
@@ -927,10 +927,10 @@ class CtsGraph {
         parsedReply.results.bindings.each { b ->
             reply.append("\t<groupname>${b.gname?.value}</groupname>\n")
             reply.append("\t<title>${b.title?.value}</title>\n")
-            reply.append("\t<label>${b.lab?.value}</label>\n")
+            reply.append("\t<version>${b.lab?.value}</version>\n")
         }
 
-        reply.append("</description>\n")
+        reply.append("</label>\n")
         return reply.toString()
     }
 
