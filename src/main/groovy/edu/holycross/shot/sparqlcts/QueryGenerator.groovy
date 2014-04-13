@@ -206,7 +206,8 @@ ORDER BY ?s
      }
 
 
-// Check if we need transitive query ...?
+// At this point, the query below is not called by CtsGraph. It is way slow on large queries.
+// Instead, we check for non-leaf-nodes, and treat those as range-requests. 16x faster.
 
     /** Builds magical SPARQL query string getting ordered text contents
     * of all URNs contained within a given URN.  The URN must be

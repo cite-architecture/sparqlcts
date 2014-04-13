@@ -664,8 +664,8 @@ class CtsGraph {
                 }
             }
         }
-	    reply.append(formatter.closeAncestors(currentWrapper))
 		
+	    reply.append(formatter.closeAncestors(currentWrapper))
         return reply.toString()
         } catch (Exception e){
             throw new Exception("CtsGraph Exception: GetFillText ")
@@ -737,38 +737,42 @@ class CtsGraph {
         CtsUrn urn = resolveVersion(requestUrn)
         if (isLeafNode(urn)) {
             ctsReply = getSparqlReply("application/json", qg.getLeafNodeQuery(urn, context))
+				def slurper = new groovy.json.JsonSlurper()
+				def parsedReply = slurper.parseText(ctsReply)
+				def currentWrapper = ""
+				def citeDiffLevel = 0
+				if (parsedReply.results.bindings.size() < 1){
+					throw new Exception ("CtsGraph: GetNodeText: No results")
+				}
+				parsedReply.results.bindings.eachWithIndex { b, i ->
+					if (b.anc) {
+						if (b.anc?.value != currentWrapper) {
+							citeDiffLevel = formatter.levelDiff(b.anc?.value, currentWrapper, b.xpt?.value)
+							if (currentWrapper == "") {
+								if (openXml)  {
+									reply.append(formatter.openAncestors(b.anc?.value))
+								}
+							} else  {
+									reply.append(formatter.trimClose(b.anc?.value, b.xpt?.value,citeDiffLevel))
+									reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, citeDiffLevel))
+							}
+							currentWrapper = b.anc?.value
+						}
+					}
+					if (b.txt) {
+						reply.append(b.txt?.value)
+					}
+				}
+				if (closeXml) {
+					reply.append(formatter.closeAncestors(currentWrapper))
+				}
+		// if not leaf-node (we are treating this as a range, which is the fastest way.
+		// what do we do with 'context' in non-leaf-nodes?
         } else {
             CtsUrn docUrn = resolveVersion(new CtsUrn("${requestUrn.getUrnWithoutPassage()}"))
-            ctsReply = getSparqlReply("application/json", qg.getContainedTextQuery(urn, docUrn))
-        }
-        def slurper = new groovy.json.JsonSlurper()
-        def parsedReply = slurper.parseText(ctsReply)
-        def currentWrapper = ""
-		def citeDiffLevel = 0
-        if (parsedReply.results.bindings.size() < 1){
-            throw new Exception ("CtsGraph: GetNodeText: No results")
-        }
-        parsedReply.results.bindings.eachWithIndex { b, i ->
-            if (b.anc) {
-                if (b.anc?.value != currentWrapper) {
-				    citeDiffLevel = formatter.levelDiff(b.anc?.value, currentWrapper, b.xpt?.value)
-                    if (currentWrapper == "") {
-                        if (openXml)  {
-                            reply.append(formatter.openAncestors(b.anc?.value))
-                        }
-                    } else  {
-							reply.append(formatter.trimClose(b.anc?.value, b.xpt?.value,citeDiffLevel))
-							reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, citeDiffLevel))
-                    }
-                    currentWrapper = b.anc?.value
-                }
-            }
-            if (b.txt) {
-                reply.append(b.txt?.value)
-            }
-        }
-        if (closeXml) {
-            reply.append(formatter.closeAncestors(currentWrapper))
+            Integer startAtStr = getFirstSequence(urn)
+            Integer endAtStr = getLastSequence(urn)
+			reply.append(getFillText(startAtStr.toInteger(), endAtStr.toInteger(), "${docUrn.asString}"))
         }
         return reply.toString()
         } catch (Exception e){
