@@ -99,32 +99,30 @@ class QueryGenerator {
 			return """
 					${CtsDefinitions.prefixPhrase}
 
-			SELECT ?psg ?txt ?anc ?xpt WHERE {
-					?psg cts:belongsTo+ <${urn.getUrnWithoutPassage()}> .
-							?psg cts:hasTextContent ?txt .
-							?psg cts:hasSequence ?s .
-							?psg hmt:xpTemplate ?xpt .
-							?psg hmt:xmlOpen ?anc  .
+SELECT ?psg ?txt ?anc ?xpt WHERE {
+?psg cts:belongsTo <${urn.getUrnWithoutPassage()}> .
+?psg cts:hasTextContent ?txt .
+?psg cts:hasSequence ?s .
+?psg hmt:xpTemplate ?xpt .
+?psg hmt:xmlOpen ?anc  .
 
-							{
-									{ SELECT (xsd:int(?seq) + ${context} AS ?max)
-											WHERE {
-													<${urn}> cts:hasSequence ?seq .
-											}
-									}
-
-									{ SELECT (xsd:int(?seq) - ${context} AS ?min)
-											WHERE {
-													<${urn}> cts:hasSequence ?seq .
-											}
-									}
-							}
-
-					FILTER (?s <= ?max) .
-							FILTER (?s >= ?min) .
-
+{
+	{ SELECT (xsd:int(?seq) + ${context} AS ?max)
+			WHERE {
+					<${urn}> cts:hasSequence ?seq .
 			}
-			ORDER BY ?s 
+	}
+
+	{ SELECT (xsd:int(?seq) - ${context} AS ?min)
+			WHERE {
+					<${urn}> cts:hasSequence ?seq .
+			}
+	}
+}
+FILTER (?s <= ?max) .
+FILTER (?s >= ?min) .
+}
+ORDER BY ?s 
 					"""        
 	}   
 
@@ -222,14 +220,14 @@ class QueryGenerator {
     return """
      ${CtsDefinitions.prefixPhrase}
      SELECT ?u ?txt ?anc ?xpt WHERE {
+        ?u cts:belongsTo <${docUrn}> .
     	?u cts:hasSequence ?s .
     	?u cts:hasTextContent ?txt .
-        ?u cts:belongsTo <${docUrn}> .
         ?u hmt:xpTemplate ?xpt .
         ?u hmt:xmlOpen ?anc  .
 
     
-    {	{ SELECT ?seq1  ?urn1
+    {	{ SELECT ?seq1
     	(ROUND (?seq1) AS ?min)
     	WHERE  {
                 ?urn1  cts:containedBy* <${urn}>   .
@@ -240,11 +238,11 @@ class QueryGenerator {
     	} .
     
     
-    	{ SELECT ?seq2 ?urn2
+    	{ SELECT ?seq2 
     	(ROUND (?seq2) AS ?max)
     	WHERE  {
-                ?urn2  cts:containedBy*  <${urn}>  .
-                ?urn2 cts:hasSequence ?seq2 .        
+                ?urn1  cts:containedBy*  <${urn}>  .
+                ?urn1 cts:hasSequence ?seq2 .        
              }
     	ORDER BY DESC(?seq2)
     	LIMIT 1
@@ -277,7 +275,7 @@ class QueryGenerator {
 
     SELECT ?u ?txt ?anc ?xpt ?nxt WHERE {
     	?u cts:hasSequence ?s .
-		?u cts:belongsTo+ <${workUrnStr}> .
+		?u cts:belongsTo <${workUrnStr}> .
         ?u cts:next ?nxt .
     	?u cts:hasTextContent ?txt .
         ?u hmt:xpTemplate ?xpt .
@@ -393,7 +391,7 @@ return """
 ${CtsDefinitions.prefixPhrase}
 SELECT (MAX(?d) AS ?deepest)
 WHERE {
-?c cts:belongsTo+ <${workUrnStr}> .
+?c cts:belongsTo <${workUrnStr}> .
 ?leaf cts:containedBy* ?c .
 ?leaf cts:citationDepth ?d .
 }
@@ -408,7 +406,7 @@ return """
 ${CtsDefinitions.prefixPhrase}
 SELECT ?ref (MIN(?s) AS ?st)
 WHERE {
-?leaf cts:belongsTo+ <${urn}> .
+?leaf cts:belongsTo <${urn}> .
 ?leaf cts:containedBy* ?ref .
 ?leaf cts:hasSequence ?s .
 ?ref cts:citationDepth ${level} .
