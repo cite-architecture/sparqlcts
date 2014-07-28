@@ -28,7 +28,7 @@ four sections:
 */
 class CtsGraph {
 
-    boolean debug = false
+  Integer debug = 1
 
     /** SPARQL query endpoint for HMT graph triples.   */
     String tripletServerUrl
@@ -87,18 +87,6 @@ class CtsGraph {
 		}
         URL queryUrl = new URL(q)
         return queryUrl.getText("UTF-8")
-        
-        // HTTPBuilder is problematic with groovelets.
-        /*
-        def http = new HTTPBuilder(q)
-        http.request( Method.GET, ContentType.TEXT ) { req ->
-            headers.Accept = acceptType
-            response.success = { resp, reader ->
-                replyString = reader.text
-            }
-        }
-        return replyString
-        */
     }
 
     /**  Determines whether or not a CTS URN refers to a leaf
@@ -633,9 +621,9 @@ class CtsGraph {
         // we can't count on the Next section having the same structure as the previous one.
         String currentXpt = "" 
         String currentNext = ""
-		def citeDiffLevel = 0
+	def citeDiffLevel = 0
         if (parsedReply.results.bindings.size() < 1){ 
-            throw new Exception("CtsGraph: getFillText. No results")
+            throw new Exception("CtsGraph:getFillText. No results ${workUrnStr} ")
         }
         parsedReply.results.bindings.each { b ->
             if (b.anc) {
@@ -712,71 +700,94 @@ class CtsGraph {
     throws Exception {
         try {
             CtsUrn urn  = new CtsUrn(urnStr)
-            return getNodeText(urn) } catch (Exception e) { throw new Exception ("getNodeText: ${e}") } } 
-    /** Gets the text content of a single citation node.  Note that
-    * this will be well-formed if the URN refers to a leaf citation node,
-    * but could be a set of elements if the URN is a containing node.
-    * The set of XML elements is guaranteed to be ordered, but not 
-    * well formed.
-    * @param URN of the text to retrieve.
-    * @returns An XML string of the text content of this urn.
-    */
-    String getNodeText(CtsUrn requestUrn) {
-        return getNodeText(requestUrn, 0)
-    }
+            return getNodeText(urn) 
+	} catch (Exception e) { 
+	  throw new Exception ("getNodeText: ${e}") 
+	} 
+    } 
 
-    String getNodeText(CtsUrn requestUrn, Integer context) {
-        return  getNodeText(requestUrn, context, true, true)
-    }
 
-    String getNodeText(CtsUrn requestUrn, Integer context, boolean openXml, boolean closeXml) 
-    throws Exception {
-        try {
-        StringBuffer reply = new StringBuffer()
-        String ctsReply
-        CtsUrn urn = resolveVersion(requestUrn)
-        if (isLeafNode(urn)) {
-            ctsReply = getSparqlReply("application/json", qg.getLeafNodeQuery(urn, context))
-				def slurper = new groovy.json.JsonSlurper()
-				def parsedReply = slurper.parseText(ctsReply)
-				def currentWrapper = ""
-				def citeDiffLevel = 0
-				if (parsedReply.results.bindings.size() < 1){
-					throw new Exception ("CtsGraph: GetNodeText: No results")
+
+  /** Gets the text content of a single citation node.  Note that
+   * this will be well-formed if the URN refers to a leaf citation node,
+   * but could be a set of elements if the URN is a containing node.
+   * The set of XML elements is guaranteed to be ordered, but not 
+   * well formed.
+   * @param URN of the text to retrieve.
+   * @returns An XML string of the text content of this urn.
+   * @throws Exception if ...
+   */
+  String getNodeText(CtsUrn requestUrn) 
+  throws Exception {
+    return getNodeText(requestUrn, 0)
+  }
+
+  String getNodeText(CtsUrn requestUrn, Integer context) 
+  throws Exception {
+    return  getNodeText(requestUrn, context, true, true)
+  }
+
+
+  String getNodeText(CtsUrn requestUrn, Integer context, boolean openXml, boolean closeXml) 
+  throws Exception {
+
+    try {
+      StringBuffer reply = new StringBuffer()
+      String ctsReply
+      CtsUrn urn = resolveVersion(requestUrn)
+      if (isLeafNode(urn)) {
+
+	if (debug > 0) {
+	  System.err.println "CtsGraph:getNodeText: for urn ${urn}, query ${ qg.getLeafNodeQuery(urn, context)}"
+	}
+
+	ctsReply = getSparqlReply("application/json", qg.getLeafNodeQuery(urn, context))
+	def slurper = new groovy.json.JsonSlurper()
+	def parsedReply = slurper.parseText(ctsReply)
+	def currentWrapper = ""
+	def citeDiffLevel = 0
+	if (parsedReply.results.bindings.size() < 1) {
+	  System.err.println "\n\nFailed on query " + qg.getLeafNodeQuery(urn, context) + "\n\n"
+	  throw new Exception ("CtsGraph:getNodeText: No results for URN ${urn} and context ${context}")
+	}
+	parsedReply.results.bindings.eachWithIndex { b, i ->
+	  if (b.anc) {
+	    if (b.anc?.value != currentWrapper) {
+	      citeDiffLevel = formatter.levelDiff(b.anc?.value, currentWrapper, b.xpt?.value)
+	      if (currentWrapper == "") {
+		if (openXml)  {
+		  reply.append(formatter.openAncestors(b.anc?.value))
+		}
+	      } else  {
+		reply.append(formatter.trimClose(b.anc?.value, b.xpt?.value,citeDiffLevel))
+		reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, citeDiffLevel))
+	      }
+	      currentWrapper = b.anc?.value
+	    }
+	  }
+	  if (b.txt) {
+	    reply.append(b.txt?.value)
+	  }
+	}
+	if (closeXml) {
+	  reply.append(formatter.closeAncestors(currentWrapper))
+
+
 				}
-				parsedReply.results.bindings.eachWithIndex { b, i ->
-					if (b.anc) {
-						if (b.anc?.value != currentWrapper) {
-							citeDiffLevel = formatter.levelDiff(b.anc?.value, currentWrapper, b.xpt?.value)
-							if (currentWrapper == "") {
-								if (openXml)  {
-									reply.append(formatter.openAncestors(b.anc?.value))
-								}
-							} else  {
-									reply.append(formatter.trimClose(b.anc?.value, b.xpt?.value,citeDiffLevel))
-									reply.append(formatter.trimAncestors(b.anc?.value, b.xpt?.value, citeDiffLevel))
-							}
-							currentWrapper = b.anc?.value
-						}
-					}
-					if (b.txt) {
-						reply.append(b.txt?.value)
-					}
-				}
-				if (closeXml) {
-					reply.append(formatter.closeAncestors(currentWrapper))
-				}
-		// if not leaf-node (we are treating this as a range, which is the fastest way.
-		// what do we do with 'context' in non-leaf-nodes?
-        } else {
+	// if not leaf-node (we are treating this as a range, which is the fastest way.
+	// what do we do with 'context' in non-leaf-nodes?
+      } else {
             CtsUrn docUrn = resolveVersion(new CtsUrn("${requestUrn.getUrnWithoutPassage()}"))
             Integer startAtStr = getFirstSequence(urn)
             Integer endAtStr = getLastSequence(urn)
-			reply.append(getFillText(startAtStr.toInteger(), endAtStr.toInteger(), "${docUrn.asString}"))
+	    reply.append(getFillText(startAtStr.toInteger(), endAtStr.toInteger(), "${docUrn.asString}"))
         }
+
+
         return reply.toString()
+
         } catch (Exception e){
-            throw new Exception("CtsGraph: GetNodeText: ${e}")
+            throw new Exception("CtsGraph:getNodeText: ${e}")
         }
     }
 

@@ -94,10 +94,10 @@ class QueryGenerator {
      return getLeafNodeQuery(urn, 0)
     }
 
-	String getLeafNodeQuery(CtsUrn urn, Integer context) {
-			//    String docUrnStr = "urn:cts:${urn.getCtsNamespace()}:${urn.getTextGroup()}.${urn.getWork()}"
-			return """
-					${CtsDefinitions.prefixPhrase}
+  String getLeafNodeQuery(CtsUrn urn, Integer context) {
+    //    String docUrnStr = "urn:cts:${urn.getCtsNamespace()}:${urn.getTextGroup()}.${urn.getWork()}"
+    return """
+${CtsDefinitions.prefixPhrase}
 
 SELECT ?psg ?txt ?anc ?xpt WHERE {
 ?psg cts:belongsTo <${urn.getUrnWithoutPassage()}> .
@@ -107,24 +107,23 @@ SELECT ?psg ?txt ?anc ?xpt WHERE {
 ?psg hmt:xmlOpen ?anc  .
 
 {
-	{ SELECT (xsd:int(?seq) + ${context} AS ?max)
-			WHERE {
-					<${urn}> cts:hasSequence ?seq .
-			}
-	}
-
-	{ SELECT (xsd:int(?seq) - ${context} AS ?min)
-			WHERE {
-					<${urn}> cts:hasSequence ?seq .
-			}
-	}
+  { SELECT (xsd:int(?seq) + ${context} AS ?max)
+    WHERE {
+    <${urn}> cts:hasSequence ?seq .
+    }
+  }
+  { SELECT (xsd:int(?seq) - ${context} AS ?min)
+    WHERE {
+    <${urn}> cts:hasSequence ?seq .
+    }
+  }
 }
 FILTER (?s <= ?max) .
 FILTER (?s >= ?min) .
 }
 ORDER BY ?s 
-					"""        
-	}   
+"""        
+  }   
 
 
     /** Builds SPARQL query string to determine if a 
