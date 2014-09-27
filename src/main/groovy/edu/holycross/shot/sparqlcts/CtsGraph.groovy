@@ -647,7 +647,12 @@ class CtsGraph {
                             currentXpt = b.xpt?.value
                         }
                     if (b.txt) {
-                        reply.append(b.txt?.value)
+						//Here we are going to wrap the leaf-node in an element, 
+						//with the URN as an attribute
+						def tempText = """<cts:node urn="${b.u?.value}">${b.txt?.value}</cts:node>"""
+						
+						//reply.append(b.txt?.value)
+						reply.append(tempText)
                     }
                 }
             }
@@ -766,7 +771,13 @@ class CtsGraph {
 	    }
 	  }
 	  if (b.txt) {
-	    reply.append(b.txt?.value)
+				//Here we are going to wrap the leaf-node in an element, 
+				//with the URN as an attribute
+				def tempText = """<cts:node urn="${b.u?.value}">${b.txt?.value}</cts:node>"""
+				
+				
+				//reply.append(b.txt?.value)
+				reply.append(tempText)
 	  }
 	}
 	if (closeXml) {
