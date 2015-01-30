@@ -5,4 +5,17 @@
 project.ext {
     tripleserver = "http://localhost:3030/ds/"
     inventoryDir = "testinvs"
+
+
+
+    
+    mdSrc = "specs/markdown"
+    
+    htmlPreface = """
+<html xmlns:concordion="http://www.concordion.org/2007/concordion">
+<body>
+    """
+    htmlEnd = "</body>\n</html>\n"
+
+
 }
