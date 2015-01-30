@@ -39,30 +39,37 @@ if (req == "GetCapabilities") {
   println getCapsReply()
   done = true
 
+
+} else  if (req == "GetVersion") {
+  println "<version>@version@</version>"
+  done = true
+  
 } else {
-    // guarantee that URN parameter is syntactically valid
-    try {
-        CtsUrn urn = new CtsUrn(urnStr)
-    } catch (Exception e) {
-      println """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
+  // guarantee that URN parameter is syntactically valid
+  try {
+    CtsUrn urn = new CtsUrn(urnStr)
+  } catch (Exception e) {
+    println """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
       def errorNum
       switch (e) {
-			case 'java.lang.Exception: Bad URN syntax: #BADSYNTAX#':
-				errorNum = 2
-				println """<message>BAD URN SYNTAX: ${urnStr}</message>\n"""
-				println """<code>${errorNum}</code>\n"""
-				break
-			case 'java.lang.Exception: Bad URN syntax: ##':
-				errorNum = 1
-				println """<message>INVALID REQUEST. Missing required parameter: 'urn'</message>\n"""
-				println """<code>${errorNum}</code>\n"""
-				break
-			default:
-				errorNum = 0
-				break
-		}
-		println """</CTSError>\n"""
-        done = true
+      case 'java.lang.Exception: Bad URN syntax: #BADSYNTAX#':
+      errorNum = 2
+      println """<message>BAD URN SYNTAX: ${urnStr}</message>\n"""
+      println """<code>${errorNum}</code>\n"""
+      break
+
+      case 'java.lang.Exception: Bad URN syntax: ##':
+      errorNum = 1
+      println """<message>INVALID REQUEST. Missing required parameter: 'urn'</message>\n"""
+      println """<code>${errorNum}</code>\n"""
+      break
+
+      default:
+      errorNum = 0
+      break
+      }
+      println """</CTSError>\n"""
+      done = true
     }
 }
 
@@ -79,25 +86,36 @@ if (request.getParameter("context")) {
 if (!done) {
     CtsGraph ctsg = new CtsGraph("@tripleserver@")
     switch(req) {
-        case "GetDescription":
-	//println '<?xml-stylesheet type="text/xsl" href="xslt/gd.xsl"?>\n' + ctsg.getDescrReply(urnStr)
-					println ctsg.getDescrReply(urnStr)
-            break
-        case "GetPassagePlus":
-	//            println '<?xml-stylesheet type="text/xsl" href="xslt/gp.xsl"?>\n' + ctsg.getPassagePlusReply(urnStr, context)
-		reply = ""
-		try {
-            reply = ctsg.getPassagePlusReply(urnStr, context)
-		} catch (Exception e) {
-				reply = """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
-				reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
-				reply += """<message>Invalid URN reference: ${urnStr}</message>\n"""
-				reply += """<code>3</code>\n"""
-				reply += """</CTSError>\n"""
-				
-		}
-		println reply
-        break
+
+
+
+
+
+      
+    case "GetDescription":
+    //println '<?xml-stylesheet type="text/xsl" href="xslt/gd.xsl"?>\n' + ctsg.getDescrReply(urnStr)
+    println ctsg.getDescrReply(urnStr)
+    break
+
+
+    case "GetPassagePlus":
+    //            println '<?xml-stylesheet type="text/xsl" href="xslt/gp.xsl"?>\n' + ctsg.getPassagePlusReply(urnStr, context)
+    reply = ""
+    try {
+      reply = ctsg.getPassagePlusReply(urnStr, context)
+    } catch (Exception e) {
+      reply = """<?xml-model href="../rng/Error.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0" ?>\n"""
+      reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
+      reply += """<message>Invalid URN reference: ${urnStr}</message>\n"""
+      reply += """<code>3</code>\n"""
+      reply += """</CTSError>\n"""
+      
+    }
+    println reply
+    break
+
+
+    
 
         case "GetPassage":
 	//           println '<?xml-stylesheet type="text/xsl" href="xslt/gp.xsl"?>\n' + ctsg.getPassageReply(urnStr, context)
@@ -130,6 +148,8 @@ if (!done) {
 		}
 		println reply
         break
+
+
 
         case "GetValidReff":
 	//            print '<?xml-stylesheet type="text/xsl" href="xslt/gvr.xsl"?>\n' 
@@ -169,6 +189,9 @@ if (!done) {
         println reply
         break
 
+
+
+	
         default :
         // break with "undefined request" excetpion
             println "<error>Unrecognized request: ${req}.  \n(Add properly name-spaced reply here.)</error>"

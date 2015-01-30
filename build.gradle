@@ -51,7 +51,7 @@ if (hasProperty('conf')) {
 }
 
 group = "edu.holycross.shot"
-version = "0.9.5"
+version = "0.9.7"
 
 buildscript {
   repositories {
@@ -161,7 +161,7 @@ task buildTemplate(type: Zip, dependsOn: [copyBuildPkg, copyWeb] ) {
 
 
 war {
-    filter(ReplaceTokens, tokens: [tripleserver: tripleserver])
+  filter(ReplaceTokens, tokens: [tripleserver: tripleserver, version: version])
 }
 
 war.dependsOn  copyInventory

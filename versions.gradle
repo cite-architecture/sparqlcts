@@ -4,7 +4,7 @@ ext {
 
   commonsioVersion = "1.4"
   log4jVersion= "1.2.15"
-  groovyVersion = "2.2.2"
+  groovyVersion = "2.3.6"
 
   junitVersion = "4.8.2"
   xmlunitVersion = "1.3"
