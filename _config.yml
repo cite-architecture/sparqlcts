@@ -1,0 +1,37 @@
+# Dependencies
+markdown:         redcarpet
+pygments:         true
+
+# Permalinks
+permalink:        pretty
+
+# Setup
+title:            sparqlcts
+tagline:          'A SPARQL-backed CTS implementation'
+description:      'Implementation of the Canonical Text Services using a SPARQL endpoint for its source data'
+baseurl: '/sparqlcts/'
+
+
+author:
+  name:           'Neel Smith'
+ 
+
+paginate:         5
+
+github:
+  repo:           https://github.com/neelsmith/cite
+
+version:          0.12.0
+
+links:
+  - title: API docs
+    url: /api
+  - title: Github project
+    url: https://github.com/cite-architecture/sparqlcts
+    external: true
+  - title: Live specifications
+    url: specs/citeverbs/CiteVerbs.html
+  - title: CITE architecture home page
+    url: http://cite-architecture.github.io/
+    external: true
+   
