@@ -33,7 +33,7 @@ class TestSchemas extends GroovyTestCase {
                            "com.thaiopensource.relaxng.jaxp.XMLSyntaxSchemaFactory")
         def factory = SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI)
 
-        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.1")
+        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.1")
         def gp =  ctsg.getPassageReply(urn, 0)
 
         File schemaFile = new File("${schemaBase}/GetPassage.rng")
@@ -49,7 +49,7 @@ class TestSchemas extends GroovyTestCase {
                            "com.thaiopensource.relaxng.jaxp.XMLSyntaxSchemaFactory")
         def factory = SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI)
 
-        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.1")
+        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.1")
         def gpp =  ctsg.getPassagePlusReply(urn, 0)
 
         File schemaFile = new File("${schemaBase}/GetPassagePlus.rng")
@@ -66,7 +66,7 @@ System.err.println "FAILING GPP: " + gpp
                            "com.thaiopensource.relaxng.jaxp.XMLSyntaxSchemaFactory")
         def factory = SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI)
 
-        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.1")
+        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.1")
         def gpn =  ctsg.getPrevNextReply(urn)
 
         File schemaFile = new File("${schemaBase}/GetPrevNext.rng")
@@ -81,7 +81,7 @@ System.err.println "FAILING GPP: " + gpp
                            "com.thaiopensource.relaxng.jaxp.XMLSyntaxSchemaFactory")
         def factory = SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI)
 
-        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.1")
+        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.1")
         def gd =  ctsg.getDescrReply(urn)
 
         File schemaFile = new File("${schemaBase}/GetDescription.rng")
@@ -97,7 +97,7 @@ System.err.println "FAILING GPP: " + gpp
                            "com.thaiopensource.relaxng.jaxp.XMLSyntaxSchemaFactory")
         def factory = SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI)
 
-        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.1")
+        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.1")
         def gvr =  ctsg.getGVRReply(urn)
 System.err.println "GVR " + gvr
         File schemaFile = new File("${schemaBase}/GetValidReff.rng")

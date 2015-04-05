@@ -12,7 +12,7 @@ class TestXpath extends GroovyTestCase {
 
 
     // Test values
-    CtsUrn  urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.26")
+    CtsUrn  urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.26")
     String ancestorXpath = "/tei:TEI/tei:text/tei:body/tei:div[@n = '1']"
     String xpTemplate = "/tei:TEI/tei:text/tei:body/tei:div[@n = '?']/tei:l[@n = '?']"
 

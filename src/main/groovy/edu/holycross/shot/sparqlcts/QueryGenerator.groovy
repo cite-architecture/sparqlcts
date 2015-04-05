@@ -58,7 +58,7 @@ class QueryGenerator {
         SELECT ?psg ?ns ?abbr ?lang WHERE {
           <${psgUrn.toString()}> cts:belongsTo ?doc .
           ?doc cts:xmlns ?ns .
-          ?doc cts:belongsTo ?wk .
+          ?doc cts:belongsTo* ?wk .
           ?wk cts:lang ?lang .
           ?ns cts:abbreviatedBy ?abbr .
 		  BIND(<${psgUrn.toString()}> as ?psg)
@@ -173,6 +173,7 @@ ORDER BY ?s
     * @returns A complete SPARQL query string.
     */
     String getFirstContainedQuery(CtsUrn containingUrn) {
+	  System.err.println "getFirstContainedQuery"
       return """
       ${CtsDefinitions.prefixPhrase}
       SELECT   ?urn ?seq
@@ -363,17 +364,18 @@ WHERE  {
 * anywhere in a work. Input is a work-level URN.
 */
 String getLeafDepthForWorkQuery(CtsUrn urn) {
+	System.err.println "inside getLeafDepthForWorkQuery"
 return """
 ${CtsDefinitions.prefixPhrase}
 
 SELECT (MAX(?d) AS ?deepest) WHERE { 
 {
-        ?old cts:belongsTo <${urn.asString}> .
+        ?old cts:belongsTo <${urn.toString()}> .
         ?old cts:citationDepth ?d .
 }
 UNION 
 {
-        ?old cts:belongsTo <${urn.asString}> .
+        ?old cts:belongsTo <${urn.toString()}> .
         ?c cts:containedBy+  ?old .
         ?leaf cts:containedBy* ?c . 
         ?leaf cts:citationDepth ?d . 
@@ -399,7 +401,7 @@ WHERE {
 }
 
 /* Forms SPARQL query to find all urns at a given depth
-*  given a work-level URN and an integer (depth) as input
+*  given a version- or exemplar-level URN and an integer (depth) as input
 */
 String getWorkGVRQuery(CtsUrn urn, Integer level) {
 return """

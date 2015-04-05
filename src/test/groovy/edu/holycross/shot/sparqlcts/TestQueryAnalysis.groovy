@@ -12,16 +12,16 @@ class TestQueryAnalysis extends GroovyTestCase {
 
     void testCiteTypes() {
         def ctsg =  new CtsGraph(serverUrl)
-        assert ctsg.isLeafNode(new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.1"))
-        assert (ctsg.isLeafNode(new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1")) == false)
+        assert ctsg.isLeafNode(new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.1"))
+        assert (ctsg.isLeafNode(new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1")) == false)
 
     }
 
     void testVersion() {
         def ctsg =  new CtsGraph(serverUrl)
-        String expectedVersion = "chs01"
+        String expectedVersion = "fuPers"
         assert ctsg.findVersion(new CtsUrn("urn:cts:greekLit:tlg0012.tlg001:1.1")) == expectedVersion
-        assert ctsg.findVersion(new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.1")) == expectedVersion
+        assert ctsg.findVersion(new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.1")) == expectedVersion
     }
 
 }

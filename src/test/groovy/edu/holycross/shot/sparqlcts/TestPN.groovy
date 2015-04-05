@@ -20,20 +20,20 @@ class TestPN extends GroovyTestCase {
 
 
     void testBasicPrevNext() {
-        CtsUrn nodeUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.25")
+        CtsUrn nodeUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.25")
 
-        assert  ctsg.getNextUrn(nodeUrn) == "urn:cts:greekLit:tlg0012.tlg001.chs01:1.26"
-        assert ctsg.getPrevUrn(nodeUrn) ==  "urn:cts:greekLit:tlg0012.tlg001.chs01:1.24"
+        assert  ctsg.getNextUrn(nodeUrn) == "urn:cts:greekLit:tlg0012.tlg001.fuPers:1.26"
+        assert ctsg.getPrevUrn(nodeUrn) ==  "urn:cts:greekLit:tlg0012.tlg001.fuPers:1.24"
 
         assert ctsg.getPrevSeq(nodeUrn) == 24
         assert ctsg.getNextSeq(nodeUrn) == 26
 
 
         // works across containing units:
-        CtsUrn newBook = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:2.1")
+        CtsUrn newBook = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:2.1")
 
-        assert ctsg.getPrevUrn(newBook) ==  "urn:cts:greekLit:tlg0012.tlg001.chs01:1.611"
-        assert ctsg.getNextUrn(newBook) ==  "urn:cts:greekLit:tlg0012.tlg001.chs01:2.2"
+        assert ctsg.getPrevUrn(newBook) ==  "urn:cts:greekLit:tlg0012.tlg001.fuPers:1.611"
+        assert ctsg.getNextUrn(newBook) ==  "urn:cts:greekLit:tlg0012.tlg001.fuPers:2.2"
 
 //        assert ctsg.getPrevSeq(newBook) == 611
 //        assert ctsg.getNextSeq(newBook) == 613
@@ -41,8 +41,8 @@ class TestPN extends GroovyTestCase {
 
     // Edge-of-world test cases:
     void testEdges() {
-        CtsUrn firstNode = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.1")
-        CtsUrn lastNode = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:24.804")
+        CtsUrn firstNode = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.1")
+        CtsUrn lastNode = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:24.804")
         
         // String methods return empty (0-length) string:
         assert ctsg.getPrevUrn(firstNode).size() == 0
@@ -56,10 +56,10 @@ class TestPN extends GroovyTestCase {
 
 
     void testRanges() {
-        CtsUrn rangeUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.20-1.25")
+        CtsUrn rangeUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.20-1.25")
 
-        assert  ctsg.getNextUrn(rangeUrn) == "urn:cts:greekLit:tlg0012.tlg001.chs01:1.26"
-        assert ctsg.getPrevUrn(rangeUrn) ==  "urn:cts:greekLit:tlg0012.tlg001.chs01:1.19"
+        assert ctsg.getNextUrn(rangeUrn) == "urn:cts:greekLit:tlg0012.tlg001.fuPers:1.26"
+        assert ctsg.getPrevUrn(rangeUrn) ==  "urn:cts:greekLit:tlg0012.tlg001.fuPers:1.19"
 
         assert ctsg.getPrevSeq(rangeUrn) == 19
         assert ctsg.getNextSeq(rangeUrn) == 26

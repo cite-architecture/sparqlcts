@@ -10,8 +10,9 @@ class TestComplexRetrieval extends GroovyTestCase {
     def serverUrl = "http://localhost:3030/ds/"
 
     groovy.xml.Namespace tei = new groovy.xml.Namespace("http://www.tei-c.org/ns/1.0")
+    groovy.xml.Namespace cts = new groovy.xml.Namespace("http://chs.harvard.edu/xmlns/cts")
 
-    CtsUrn iliad1 = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.msA:1")
+    CtsUrn iliad1 = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1")
 
     void testGetContainerNs() {
         def ctsg =  new CtsGraph(serverUrl)
@@ -22,36 +23,35 @@ class TestComplexRetrieval extends GroovyTestCase {
     void testGetContainerNodeText() {
         def ctsg =  new CtsGraph(serverUrl)
         String iliad1lines = ctsg.getNodeText(iliad1)
-        CtsUrn docUrn = new CtsUrn ("urn:cts:greekLit:tlg0012.tlg001.msA")
+        CtsUrn docUrn = new CtsUrn ("urn:cts:greekLit:tlg0012.tlg001.fuPers:")
         //System.err.println "Query : " + ctsg.qg.getContainedTextQuery(iliad1, docUrn)
-
-        def root = new XmlParser().parseText("<root ${ctsg.getMetadataAttrs(iliad1)}>${iliad1lines}</root>")
+        def root = new XmlParser().parseText("<root ${ctsg.getMetadataAttrs(iliad1)} xmlns:cts='http://chs.harvard.edu/xmlns/cts'>${iliad1lines}</root>")
 
         // Allen has 611 lines in book 1?
-        assert  root[tei.TEI][tei.text][tei.body][tei.div][tei.l].size() == 611
+        assert  root[tei.TEI][tei.text][tei.body][tei.div][cts.node][tei.l].size() == 611
     }
 
 
 
     void testRangeText() {
         def ctsg =  new CtsGraph(serverUrl)
-        CtsUrn rangeUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.msA:1.1-1.2")
+        CtsUrn rangeUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.1-1.2")
         String rangeText = ctsg.getRangeText(rangeUrn)
-        def root = new XmlParser().parseText("<root ${ctsg.getMetadataAttrs(rangeUrn)}>${rangeText}</root>")
-        assert root[tei.TEI][tei.text][tei.body][tei.div][tei.l].size() == 2
+        def root = new XmlParser().parseText("<root ${ctsg.getMetadataAttrs(rangeUrn)} xmlns:cts='http://chs.harvard.edu/xmlns/cts'>${rangeText}</root>")
+        assert root[tei.TEI][tei.text][tei.body][tei.div][cts.node][tei.l].size() == 2
     }
 
 
     void testRangeXing() {
         def ctsg =  new CtsGraph(serverUrl)
-        CtsUrn rangeUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.msA:1.609-2.2")
+        CtsUrn rangeUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.609-2.2")
         String rangeText = ctsg.getRangeText(rangeUrn)
 
         System.err.println "RANGE: " + rangeText
-        def root = new XmlParser().parseText("<root ${ctsg.getMetadataAttrs(rangeUrn)}>${rangeText}</root>")
+        def root = new XmlParser().parseText("<root ${ctsg.getMetadataAttrs(rangeUrn)} xmlns:cts='http://chs.harvard.edu/xmlns/cts'>${rangeText}</root>")
         // 5 lines spanning 2 books:
         assert root[tei.TEI][tei.text][tei.body][tei.div].size() == 2
-        assert root[tei.TEI][tei.text][tei.body][tei.div][tei.l].size() == 5
+        assert root[tei.TEI][tei.text][tei.body][tei.div][cts.node][tei.l].size() == 5
 
     }
 }

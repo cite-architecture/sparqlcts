@@ -10,13 +10,12 @@ class TestFUGP extends GroovyTestCase {
     def serverUrl = "http://localhost:3030/ds/"
     def ctsg = new CtsGraph(serverUrl)
 
-    CtsUrn wh = new CtsUrn("urn:cts:greekLit:tlg0031.tlg001.fugnt001")
-    CtsUrn kjv = new CtsUrn("urn:cts:greekLit:tlg0031.tlg001.fu001")
-    CtsUrn vulgate = new CtsUrn("urn:cts:greekLit:tlg0031.tlg001.fu002")
+    CtsUrn wh = new CtsUrn("urn:cts:greekLit:tlg0527.tlg001.fu01:")
+    CtsUrn kjv = new CtsUrn("urn:cts:greekLit:tlg0527.tlg001.fuKJV:")
 
-    CtsUrn verseInWork = new CtsUrn("urn:cts:greekLit:tlg0031.tlg001:1.2")
+    CtsUrn verseInWork = new CtsUrn("urn:cts:greekLit:tlg0527.tlg001.fu01:1.2")
 
-    CtsUrn verseInTrans = new CtsUrn("urn:cts:greekLit:tlg0031.tlg001.fu002:1.2")
+    CtsUrn verseInTrans = new CtsUrn("urn:cts:greekLit:tlg0527.tlg001.fuKJV:1.2")
 
     @Test void testIsTrans() {
         System.err.println "TEST ${verseInTrans} = translation:  " + ctsg.isTranslation(verseInTrans)
@@ -29,7 +28,7 @@ class TestFUGP extends GroovyTestCase {
 
 
     @Test void testMetadata() {
-    CtsUrn wh1 = new CtsUrn("urn:cts:greekLit:tlg0031.tlg001.fugnt001:1.1")
+    CtsUrn wh1 = new CtsUrn("urn:cts:greekLit:tlg0527.tlg001.fu01:1.1")
         String rawAttrs =  ctsg.getMetadataAttrs(wh1)
         String expectedAttrs = 'xmlns:tei="http://www.tei-c.org/ns/1.0" xml:lang="grc"'
 
@@ -44,7 +43,7 @@ class TestFUGP extends GroovyTestCase {
         String actualRawStripped = rawTransAttrs.replaceAll(/[ \n\t]+$/, '')
         actualRawStripped = actualRawStripped.replaceAll(/^[ \t]+/,'')
 
-        assert actualRawStripped == 'xmlns:tei="http://www.tei-c.org/ns/1.0" xml:lang="lat"'
+        assert actualRawStripped == 'xmlns:tei="http://www.tei-c.org/ns/1.0" xml:lang="eng"'
 
     }
 

@@ -130,7 +130,7 @@ class CtsGraph {
         StringBuffer replyText = new StringBuffer()
         CtsUrn queryUrn
         if (requestUrn.isRange()) {
-            CtsUrn nsUrn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}:${requestUrn.getRangeEnd()}")
+            CtsUrn nsUrn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}${requestUrn.getRangeEnd()}")
 
 			// The citations in a range may not be leaf-nodes. But any contained leaf-node will do!
 			if ( isLeafNode(nsUrn) ){
@@ -168,7 +168,7 @@ class CtsGraph {
         StringBuffer replyText = new StringBuffer()
         CtsUrn queryUrn
         if (requestUrn.isRange()) {
-            CtsUrn nsUrn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}:${requestUrn.getRangeEnd()}")
+            CtsUrn nsUrn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}${requestUrn.getRangeEnd()}")
 
 			// The citations in a range may not be leaf-nodes. But any contained leaf-node will do!
 			if ( isLeafNode(nsUrn) ){
@@ -212,8 +212,9 @@ class CtsGraph {
     */
     String findVersion(CtsUrn urn) 
     throws Exception {
-        String vers = urn.getVersion(false)
-        if (vers == null) {
+        String workLevel = urn.labelForWorkLevel()
+		String vers = ""
+        if (!((workLevel == 'version')|(workLevel == 'exemplar'))) {
             String reply = getSparqlReply("text/xml", qg.getVersionQuery(urn))
             def root = new XmlParser().parseText(reply)
             root[sparql.results][sparql.result].each { r ->
@@ -221,7 +222,7 @@ class CtsGraph {
                 versNode.children().each {
                     String urnVal = it.text()
 					// we only want the first valid one!
-					if (vers == null){
+					if (vers == ""){
 							try {
 								CtsUrn workUrn = new CtsUrn(urnVal)
 								vers = workUrn.getVersion(false)
@@ -231,7 +232,9 @@ class CtsGraph {
 					}
                 }
             }
-        }
+        } else {
+			vers = urn.getVersion(false)
+		}
         return vers
     }
 
@@ -252,7 +255,7 @@ class CtsGraph {
             }
         }
         if (urn.getPassageComponent()) {
-            return container + ":${urn.getPassageComponent()}"
+            return container + "${urn.getPassageComponent()}"
         } else {
             return container
         }
@@ -269,17 +272,19 @@ class CtsGraph {
     */
     CtsUrn resolveVersion(CtsUrn urn) 
     throws Exception {
-				if (urn.getVersion(false) != null) {
+				String workLevel = urn.labelForWorkLevel()
+				if ((workLevel == 'version')|(workLevel == 'exemplar')) {
 					// already has a version component
 					return urn
 				} else {
 					String version = findVersion(urn)
 					if (version) {
 						String resolvedStr 
+						String noColon = urn.getUrnWithoutPassage().substring(0, urn.getUrnWithoutPassage().length() - 1)
 						if (urn.getPassageComponent() != null) {
-							resolvedStr  =  "${urn.getUrnWithoutPassage()}.${version}:${urn.getPassageComponent()}"
+							resolvedStr  =  "${noColon}.${version}:${urn.getPassageComponent()}"
 						} else {
-						   resolvedStr  =  "${urn.getUrnWithoutPassage()}.${version}"
+						   resolvedStr  =  "${noColon}.${version}:"
 						}
 						try {
 							return (new CtsUrn(resolvedStr))
@@ -445,7 +450,7 @@ class CtsGraph {
     Integer getNextSeq(CtsUrn requestUrn) {
         CtsUrn urn
         if (requestUrn.isRange()) {
-            urn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}:${requestUrn.getRangeEnd()}")
+            urn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}${requestUrn.getRangeEnd()}")
         } else {
             urn  = requestUrn
         }
@@ -475,7 +480,7 @@ class CtsGraph {
     Integer getPrevSeq(CtsUrn requestUrn) {
         CtsUrn urn
         if (requestUrn.isRange()) {
-            urn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}:${requestUrn.getRangeBegin()}")
+            urn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}${requestUrn.getRangeBegin()}")
         } else {
             urn  = requestUrn
         }
@@ -505,15 +510,16 @@ class CtsGraph {
     * @returns The urn of the preceding citable node, as a String,
     * or a null String ("") if there is no preceding citable node.
     */
+
+
     String getPrevUrn(CtsUrn requestUrn) {
         CtsUrn urn
 		String replyString = ""
         if (requestUrn.isRange()) {
-            urn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}:${requestUrn.getRangeBegin()}")
+            urn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}${requestUrn.getRangeBegin()}")
         } else {
             urn  = requestUrn
         }
-
 		if (isLeafNode(urn)){
 				StringBuffer reply = new StringBuffer()
 				String ctsReply =  getSparqlReply("application/json", qg.getPrevUrnQuery(urn))
@@ -524,23 +530,24 @@ class CtsGraph {
 						reply.append(b.prevUrn?.value)
 					}
 				}
-				replyString = reply.toString()
+				replyString = reply.toString().replaceAll("::",":")
 		} else {
-		    	
     		Integer depthUrn = urn.getCitationDepth()
 			Integer firstSequenceOfUrn = getFirstSequence(urn)
 			String firstSeqUrn = getUrnForSequence(firstSequenceOfUrn, urn.getUrnWithoutPassage())
 		    String prevLeafUrnStr= getPrevUrn(new CtsUrn(firstSeqUrn))	
 			if (prevLeafUrnStr != ""){
 					CtsUrn prevLeafUrn = new CtsUrn(prevLeafUrnStr)
-					CtsUrn prevUrn = new CtsUrn("${prevLeafUrn.trimPassage(depthUrn)}")
-					replyString = prevUrn.asString
+					//Janky temp fix which will become irrelevant with update to CITE library
+					CtsUrn prevUrn = new CtsUrn("${prevLeafUrn.trimPassage(depthUrn).replaceAll('::',':')}")
+					replyString = prevUrn.toString()
 			} else { replyString = "" }
 			
 				  	
 	    }	
-        return replyString
-    }
+				return replyString.replaceAll("::",":")
+	}
+		
 
 
 
@@ -553,7 +560,7 @@ class CtsGraph {
         CtsUrn urn
 		String replyString = ""
         if (requestUrn.isRange()) {
-            urn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}:${requestUrn.getRangeEnd()}")
+            urn = new CtsUrn("${requestUrn.getUrnWithoutPassage()}${requestUrn.getRangeEnd()}")
         } else {
             urn  = requestUrn
         }
@@ -569,7 +576,7 @@ class CtsGraph {
 						reply.append(b.nextUrn?.value)
 					}
 				}
-				replyString = reply.toString()
+				replyString = reply.toString().replaceAll("::",":")
 
 		} else {
 		    	
@@ -579,13 +586,14 @@ class CtsGraph {
 		    String nextLeafUrnStr= getNextUrn(new CtsUrn(lastSeqUrn))	
 			if (nextLeafUrnStr != ""){
 					CtsUrn nextLeafUrn = new CtsUrn(nextLeafUrnStr)
-					CtsUrn nextUrn = new CtsUrn("${nextLeafUrn.trimPassage(depthUrn)}")
-					replyString = nextUrn.asString
+					//Janky temp fix which will become irrelevant with update to CITE library
+					CtsUrn nextUrn = new CtsUrn("${nextLeafUrn.trimPassage(depthUrn).replaceAll('::',':')}")
+					replyString = nextUrn.toString()
 			} else { replyString = "" }
 							
 		}	
 
-				return replyString
+				return replyString.replaceAll("::",":")
 			}
 
 
@@ -673,8 +681,8 @@ class CtsGraph {
 
         StringBuffer reply = new StringBuffer()
 
-        CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}")
-        CtsUrn urn2 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeEnd()}")
+        CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}${urn.getRangeBegin()}")
+        CtsUrn urn2 = new CtsUrn("${urn.getUrnWithoutPassage()}${urn.getRangeEnd()}")
         Integer startAtStr 
         Integer endAtStr
 
@@ -773,7 +781,7 @@ class CtsGraph {
 	  if (b.txt) {
 				//Here we are going to wrap the leaf-node in an element, 
 				//with the URN as an attribute
-				def tempText = """<cts:node urn="${b.u?.value}">${b.txt?.value}</cts:node>"""
+				def tempText = """<cts:node urn="${b.psg?.value}">${b.txt?.value}</cts:node>"""
 				
 				
 				//reply.append(b.txt?.value)
@@ -791,7 +799,7 @@ class CtsGraph {
             CtsUrn docUrn = resolveVersion(new CtsUrn("${requestUrn.getUrnWithoutPassage()}"))
             Integer startAtStr = getFirstSequence(urn)
             Integer endAtStr = getLastSequence(urn)
-	    reply.append(getFillText(startAtStr.toInteger(), endAtStr.toInteger(), "${docUrn.asString}"))
+	    reply.append(getFillText(startAtStr.toInteger(), endAtStr.toInteger(), "${docUrn.toString()}"))
         }
 
 
@@ -861,8 +869,8 @@ class CtsGraph {
         StringBuffer reply = new StringBuffer()
         //reply.append getValidReffForNode(new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}"), level)
 
-        CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}")
-        CtsUrn urn2 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeEnd()}")
+        CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}${urn.getRangeBegin()}")
+        CtsUrn urn2 = new CtsUrn("${urn.getUrnWithoutPassage()}${urn.getRangeEnd()}")
 
         Integer startAtStr 
         Integer endAtStr
@@ -975,12 +983,15 @@ class CtsGraph {
     String getPrevNextReply(CtsUrn requestUrn) 
 			throws Exception {
 				try {
-				
 				CtsUrn urn = resolveVersion(requestUrn)
+
+
+				StringBuffer replyBuff = new StringBuffer("<GetPrevNextUrn xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<cts:request>\n<requestName>GetPrevNextUrn</requestName>\n<requestUrn>${requestUrn.toString()}</requestUrn>\n</cts:request>\n<cts:reply>\n<prevnext>\n")
+
 				// Check for valid range, first
 				if (urn.isRange()){
-						CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeBegin()}")
-						CtsUrn urn2 = new CtsUrn("${urn.getUrnWithoutPassage()}:${urn.getRangeEnd()}")
+						CtsUrn urn1 = new CtsUrn("${urn.getUrnWithoutPassage()}${urn.getRangeBegin()}")
+						CtsUrn urn2 = new CtsUrn("${urn.getUrnWithoutPassage()}${urn.getRangeEnd()}")
 						Integer startAtStr 
 						Integer endAtStr
 						if (isLeafNode(urn1)) {
@@ -994,14 +1005,20 @@ class CtsGraph {
 						} else {
 							endAtStr = getLastSequence(urn2)
 						}
-						if (endAtStr < startAtStr){ throw new Exception("CtsGraph:getPrevNextUrnReply: invalid range.") }
+						if (endAtStr < startAtStr){ 
+							throw new Exception("CtsGraph:getPrevNextUrnReply: invalid range.") 
+						} else {
+							CtsUrn rangeStartUrn = new CtsUrn(getUrnForSequence(startAtStr,urn.getUrnWithoutPassage()))
+							CtsUrn rangeEndUrn = new CtsUrn(getUrnForSequence(endAtStr,urn.getUrnWithoutPassage()))
+							replyBuff.append("<prev><urn>${getPrevUrn(rangeStartUrn)}</urn></prev>")
+							replyBuff.append("<next><urn>${getNextUrn(rangeEndUrn)}</urn></next>")
+						}
+				} else {
+					replyBuff.append("<prev><urn>${getPrevUrn(urn)}</urn></prev>")
+					replyBuff.append("<next><urn>${getNextUrn(urn)}</urn></next>")
 				}
-
-				StringBuffer replyBuff = new StringBuffer("<GetPrevNextUrn xmlns:cts='http://chs.harvard.edu/xmlns/cts' xmlns='http://chs.harvard.edu/xmlns/cts'>\n<cts:request>\n<requestName>GetPrevNextUrn</requestName>\n<requestUrn>${requestUrn.asString}</requestUrn>\n</cts:request>\n<cts:reply>\n<prevnext>\n")
-				replyBuff.append("<prev><urn>${getPrevUrn(urn)}</urn></prev>")
-				replyBuff.append("<next><urn>${getNextUrn(urn)}</urn></next>")
-				replyBuff.append("</prevnext>\n</cts:reply></GetPrevNextUrn>")
 				
+				replyBuff.append("</prevnext>\n</cts:reply></GetPrevNextUrn>")
 				return  replyBuff.toString()
 				} catch (Exception e){
 					throw new Exception("CtsGraph:getPrevNextUrnReply: ${e}")
@@ -1031,14 +1048,15 @@ class CtsGraph {
     String getPassageReply(CtsUrn requestUrn, Integer context) 
     throws Exception {
         try {
-
                 boolean isLeaf = isLeafNode(requestUrn)
                 CtsUrn urn = resolveVersion(requestUrn)
                 String nsDecls = getMetadataAttrs(urn)
                 StringBuffer psgText = new StringBuffer()
                 if (urn.isRange()) {
+					System.err.println "getPassageReply thinks this is a range"
                     psgText.append(getRangeText(urn))
                 } else {
+					System.err.println "getPassageReply thinks this is NOT a range"
                     psgText.append(getNodeText(urn, context))
                 }
 

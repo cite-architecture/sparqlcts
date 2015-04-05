@@ -1,6 +1,6 @@
 ext {
   
-  citeVersion = "0.92.0"
+  citeVersion = "0.94.1"
 
   commonsioVersion = "1.4"
   log4jVersion= "1.2.15"

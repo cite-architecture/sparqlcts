@@ -10,10 +10,12 @@ class TestTextRetrieval extends GroovyTestCase {
     def serverUrl = "http://localhost:3030/ds/"
 
     groovy.xml.Namespace tei = new groovy.xml.Namespace("http://www.tei-c.org/ns/1.0")
+    groovy.xml.Namespace cts = new groovy.xml.Namespace("http://chs.harvard.edu/xmlns/cts")
+	
 
-    CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.10")
+    CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.10")
     CtsUrn workUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001:1.10")
-    CtsUrn rangeUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.chs01:1.10-1.18")
+    CtsUrn rangeUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.10-1.18")
     CtsUrn workRangeUrn = new CtsUrn("urn:cts:greekLit:tlg0012.tlg001:1.10-1.18")
 
     void testNsDecls() {
@@ -35,8 +37,8 @@ class TestTextRetrieval extends GroovyTestCase {
         // requests should produce identical results:
         assert ctsg.getNodeText(urn) == ctsg.getNodeText(workUrn)
 
-        def root = new XmlParser().parseText("<root ${ctsg.getMetadataAttrs(urn)}>${ctsg.getNodeText(urn)}</root>")
-        assert root[tei.TEI][tei.text][tei.body][tei.div][tei.l].size() == 1
+        def root = new XmlParser().parseText("<root ${ctsg.getMetadataAttrs(urn)} xmlns:cts='http://chs.harvard.edu/xmlns/cts'>${ctsg.getNodeText(urn)}</root>")
+        assert root[tei.TEI][tei.text][tei.body][tei.div][cts.node][tei.l].size() == 1
     }
 
 /*
@@ -47,10 +49,10 @@ class TestTextRetrieval extends GroovyTestCase {
         def root = new XmlParser().parseText("<root ${ctsg.getMetadataAttrs(urn)}>${ctsg.getNodeText(urn, 5)}</root>")
         assert root[tei.TEI][tei.text][tei.body][tei.div][tei.l].size() == 11
 
-        CtsUrn iliad1one = new CtsUrn ("urn:cts:greekLit:tlg0012.tlg001.chs01:1.1")
-        def iliad1root = new XmlParser().parseText("<root ${ctsg.getMetadataAttrs(iliad1one)}>${ctsg.getNodeText(iliad1one, 5)}</root>")
+        CtsUrn iliad1one = new CtsUrn ("urn:cts:greekLit:tlg0012.tlg001.fuPers:1.1")
+        def iliad1root = new XmlParser().parseText("<root ${ctsg.getMetadataAttrs(iliad1one)} xmlns:cts='http://chs.harvard.edu/xmlns/cts'>${ctsg.getNodeText(iliad1one, 5)}</root>")
         // Iliad 1.1  PLUS 5 lines context
-        assert iliad1root[tei.TEI][tei.text][tei.body][tei.div][tei.l].size() == 6
+        assert iliad1root[tei.TEI][tei.text][tei.body][tei.div][cts.node][tei.l].size() == 6
 
     }
 */

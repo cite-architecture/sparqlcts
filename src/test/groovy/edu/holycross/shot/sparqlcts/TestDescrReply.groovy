@@ -29,11 +29,11 @@ class TestDescrReply extends GroovyTestCase {
 
 
     void testGetDescrReply() {
-        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0031.tlg001.f\
-ugnt001:16.23")
+        CtsUrn urn = new CtsUrn("urn:cts:greekLit:tlg0016.tlg001.g\
+rc:2.3")
         def desc =  ctsg.getDescrReply(urn)
-        System.err.println "Matthew 16.23 reply: " + desc
-        def wkDescr = ctsg.getDescrReply("urn:cts:greekLit:tlg0031.tlg001.fugnt001")
+        System.err.println "Herdotus 2.3 reply: " + desc
+        def wkDescr = ctsg.getDescrReply("urn:cts:greekLit:tlg0016.tlg001.grc:")
         System.err.println "WORK reply " + wkDescr
 
     }

@@ -10,27 +10,27 @@ class TestNewMods extends GroovyTestCase {
     def serverUrl = "http://localhost:3030/ds/"
     def ctsg = new CtsGraph(serverUrl)
 
-    CtsUrn ti1 = new CtsUrn("urn:cts:greekLit:five.by.five:1")
-    CtsUrn ti3 = new CtsUrn("urn:cts:greekLit:five.by.five:1.2.3")
-    CtsUrn ti5 = new CtsUrn("urn:cts:greekLit:five.by.five:1.2.3.4.3")
+    CtsUrn ti1 = new CtsUrn("urn:cts:greekLit:tlg0011.tlg004.fu02:1")
+    CtsUrn ti3 = new CtsUrn("urn:cts:greekLit:tlg0011.tlg004.fu02.tok:1")
+    CtsUrn ti5 = new CtsUrn("urn:cts:greekLit:tlg0011.tlg004.fu02.tok:1.1")
 
 
     void testDepthQuery() {
-        assert ctsg.getLeafDepth(ti1) == 5
-        assert ctsg.getLeafDepth(ti3) == 5
-        assert ctsg.getLeafDepth(ti5) == 5
+        assert ctsg.getLeafDepth(ti1) == 1
+        assert ctsg.getLeafDepth(ti3) == 2
+        assert ctsg.getLeafDepth(ti5) == 2
     }
 	
     void testNS() {
-		assert ctsg.getWorkAttrs(ti1) == ' xmlns:tei="http://www.tei-c.org/ns/1.0" xml:lang="eng" '
-		assert ctsg.getWorkAttrs(ti3) == ' xmlns:tei="http://www.tei-c.org/ns/1.0" xml:lang="eng" '
+		assert ctsg.getWorkAttrs(ti1) == ' xmlns:tei="http://www.tei-c.org/ns/1.0" xml:lang="grc" '
+		assert ctsg.getWorkAttrs(ti3) == ' xmlns:tei="http://www.tei-c.org/ns/1.0" xml:lang="grc" '
 
 	}
 
     void testNextUrn() {
-		assert ctsg.getNextUrn(ti1) == 'urn:cts:greekLit:five.by.five:2'
-		assert ctsg.getNextUrn(ti3) == 'urn:cts:greekLit:five.by.five:1.2.4'
-		assert ctsg.getNextUrn(ti5) == 'urn:cts:greekLit:five.by.five:1.2.3.4.4'
+		assert ctsg.getNextUrn(ti1) == 'urn:cts:greekLit:tlg0011.tlg004.fu02:2'
+		assert ctsg.getNextUrn(ti3) == 'urn:cts:greekLit:tlg0011.tlg004.fu02.tok:2'
+		assert ctsg.getNextUrn(ti5) == 'urn:cts:greekLit:tlg0011.tlg004.fu02.tok:1.2'
 
 	}
 
@@ -50,7 +50,7 @@ class TestNewMods extends GroovyTestCase {
 			assert ctsg.formatter.trimAncestors(testTrimAnc,testTrimXp,4) == "<tei:div4 n='4'>"
 
 			assert ctsg.formatter.openAncestors(testTrimAnc,0) == "<tei:TEI><tei:text><tei:body><tei:div1 n='1'><tei:div2 n='2'><tei:div3 n='3'><tei:div4 n='4'>"
-			assert ctsg.formatter.openAncestors(testTrimAncp) == "<tei:TEI><tei:text><tei:body><tei:div1 n='1'><tei:div2 n='2'><tei:div3 n='3'><tei:div4 n='4'>"
+			assert ctsg.formatter.openAncestors(testTrimAnc) == "<tei:TEI><tei:text><tei:body><tei:div1 n='1'><tei:div2 n='2'><tei:div3 n='3'><tei:div4 n='4'>"
 
 	}
 

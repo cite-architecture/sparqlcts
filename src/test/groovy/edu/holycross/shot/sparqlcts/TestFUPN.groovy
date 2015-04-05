@@ -10,18 +10,17 @@ class TestFUPN extends GroovyTestCase {
     def serverUrl = "http://localhost:3030/ds/"
     def ctsg = new CtsGraph(serverUrl)
 
-    CtsUrn wh = new CtsUrn("urn:cts:greekLit:tlg0031.tlg001.fugnt001")
-    CtsUrn kjv = new CtsUrn("urn:cts:greekLit:tlg0031.tlg001.fu001")
-    CtsUrn vulgate = new CtsUrn("urn:cts:greekLit:tlg0031.tlg001.fu002")
+    CtsUrn wh = new CtsUrn("urn:cts:greekLit:tlg0527.tlg001.fu01:")
+    CtsUrn kjv = new CtsUrn("urn:cts:greekLit:tlg0527.tlg001.fuKJV:")
 
     @Test void testPrevNext() {
 
-        CtsUrn kjv2 =  new CtsUrn("urn:cts:greekLit:tlg0031.tlg001.fu001:1.2")
+        CtsUrn kjv2 =  new CtsUrn("urn:cts:greekLit:tlg0527.tlg001.fuKJV:1.2")
 
         assert ctsg.getPrevSeq(kjv2) == 1
-        assert  ctsg.getPrevUrn(kjv2).toString() == "urn:cts:greekLit:tlg0031.tlg001.fu001:1.1"
+        assert  ctsg.getPrevUrn(kjv2).toString() == "urn:cts:greekLit:tlg0527.tlg001.fuKJV:1.1"
 
-        CtsUrn kjv1 =  new CtsUrn("urn:cts:greekLit:tlg0031.tlg001.fu001:1.1")
+        CtsUrn kjv1 =  new CtsUrn("urn:cts:greekLit:tlg0527.tlg001.fuKJV:1.1")
         assert ctsg.getPrevSeq(kjv1) == null
         assert ctsg.getPrevUrn(kjv1) == ""
     }
