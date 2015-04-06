@@ -1053,10 +1053,8 @@ class CtsGraph {
                 String nsDecls = getMetadataAttrs(urn)
                 StringBuffer psgText = new StringBuffer()
                 if (urn.isRange()) {
-					System.err.println "getPassageReply thinks this is a range"
                     psgText.append(getRangeText(urn))
                 } else {
-					System.err.println "getPassageReply thinks this is NOT a range"
                     psgText.append(getNodeText(urn, context))
                 }
 

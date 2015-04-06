@@ -48,7 +48,6 @@ if (req == "GetCapabilities") {
   // guarantee that URN parameter is syntactically valid
   try {
     CtsUrn urn = new CtsUrn(urnStr)
-	System.err.println "This is a syntactically valid URN"
   } catch (Exception e) {
     println """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""
       def errorNum
@@ -156,18 +155,14 @@ if (!done) {
 	//            print '<?xml-stylesheet type="text/xsl" href="xslt/gvr.xsl"?>\n' 
         String levelVal = request.getParameter("level")
         String reply = ""
-	    System.err.println "Starting GetValidREff." 
 
 		try {
 				assert levelVal.toInteger() > 0
-				System.err.println "Level value passed."
 				
 						try {
 						   CtsUrn thisUrn = new CtsUrn(urnStr)
 						   Integer maxDepth = ctsg.getLeafDepth(thisUrn)
-						   System.err.println "MaxDepth: ${maxDepth}"
 						   if (maxDepth >= levelVal.toInteger()){
-						   		   System.err.println "Got here."
 								   reply = ctsg.getGVRReply(urnStr, levelVal.toInteger())
 						   } else {
 								reply += """<CTSError xmlns:cts="http:chs.harvard.edu/xmlns/cts" xmlns="http://chs.harvard.edu/xmlns/cts">\n"""

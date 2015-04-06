@@ -173,7 +173,6 @@ ORDER BY ?s
     * @returns A complete SPARQL query string.
     */
     String getFirstContainedQuery(CtsUrn containingUrn) {
-	  System.err.println "getFirstContainedQuery"
       return """
       ${CtsDefinitions.prefixPhrase}
       SELECT   ?urn ?seq
@@ -364,7 +363,6 @@ WHERE  {
 * anywhere in a work. Input is a work-level URN.
 */
 String getLeafDepthForWorkQuery(CtsUrn urn) {
-	System.err.println "inside getLeafDepthForWorkQuery"
 return """
 ${CtsDefinitions.prefixPhrase}
 
