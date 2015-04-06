@@ -51,7 +51,7 @@ if (hasProperty('conf')) {
 }
 
 group = "edu.holycross.shot"
-version = "0.9.7"
+version = "0.9.8"
 
 buildscript {
   repositories {
