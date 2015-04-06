@@ -25,7 +25,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 
-
 /* Run this class as a JUnit test. */
 
 public class CiteVerbsTest extends ConcordionTestCase {
@@ -53,5 +52,6 @@ public class CiteVerbsTest extends ConcordionTestCase {
 	}
 	return version;
     }
+
 
 }
