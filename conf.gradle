@@ -8,14 +8,17 @@ project.ext {
 
 
 
-    
+
     mdSrc = "specs/markdown"
-    
-    htmlPreface = """
-<html xmlns:concordion="http://www.concordion.org/2007/concordion">
-<body>
-    """
-    htmlEnd = "</body>\n</html>\n"
+
+
+    tokenMap = [
+
+
+    htmlPreface : "<html xmlns:concordion='http://www.concordion.org/2007/concordion'>\n<body>",
+
+    htmlEnd : "</body>\n</html>\n"
+    ]
 
 
 }
